@@ -8,178 +8,186 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-:root {
-  --or: #FF7900;
-  --or2: #CC5200;
-  --or-bg: #FFF3E8;
-  --bg: #F2F1ED;
-  --bg2: #ECEAE4;
-  --sur: #FFFFFF;
-  --sur2: #F8F7F4;
-  --txt: #18180F;
-  --txt2: #6A6A5E;
-  --txt3: #A0A093;
-  --bdr: rgba(0,0,0,0.07);
-  --bdr2: rgba(0,0,0,0.13);
-  --red: #D73E3E;
-  --red-bg: #FEF2F2;
-  --amb: #D97706;
-  --amb-bg: #FFFBEB;
-  --grn: #16A34A;
-  --grn-bg: #F0FDF4;
-  --blu: #2563EB;
-  --blu-bg: #EFF6FF;
-  --pur: #7C3AED;
-  --pur-bg: #F5F3FF;
-  --r: 10px;
-  --rl: 14px;
+:root{
+  --or:#FF7900;--or2:#CC5200;--or-bg:#FFF3E8;
+  --bg:#F2F1ED;--bg2:#ECEAE4;--sur:#FFFFFF;--sur2:#F8F7F4;
+  --txt:#18180F;--txt2:#6A6A5E;--txt3:#A0A093;
+  --bdr:rgba(0,0,0,0.07);--bdr2:rgba(0,0,0,0.13);
+  --red:#D73E3E;--red-bg:#FEF2F2;
+  --amb:#D97706;--amb-bg:#FFFBEB;
+  --grn:#16A34A;--grn-bg:#F0FDF4;
+  --blu:#2563EB;--blu-bg:#EFF6FF;
+  --pur:#7C3AED;--pur-bg:#F5F3FF;
+  --r:10px;--rl:14px;
+  /* FORCLUSION COLORS */
+  --forc-crit:#B91C1C;--forc-crit-bg:#FFF1F1;--forc-crit-bdr:rgba(185,28,28,0.25);
+  --forc-urg:#C2410C;--forc-urg-bg:#FFF7ED;--forc-urg-bdr:rgba(194,65,12,0.22);
+  --forc-warn:#CA8A04;--forc-warn-bg:#FEFCE8;--forc-warn-bdr:rgba(202,138,4,0.22);
+  --forc-ok:#15803D;--forc-ok-bg:#F0FDF4;--forc-ok-bdr:rgba(21,128,61,0.2);
+  --forc-dead:#6B7280;--forc-dead-bg:#F9FAFB;--forc-dead-bdr:rgba(107,114,128,0.2);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5;min-height:100vh}
-
-/* LAYOUT */
 .shell{display:flex;min-height:100vh}
-.side{width:228px;background:var(--txt);color:#fff;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100}
-.side-logo{padding:22px 18px 18px;border-bottom:1px solid rgba(255,255,255,0.07)}
+
+/* SIDEBAR */
+.side{width:232px;background:var(--txt);color:#fff;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100}
+.side-logo{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,0.07)}
 .side-logo-row{display:flex;align-items:center;gap:10px}
 .side-orb{width:34px;height:34px;border-radius:50%;background:var(--or);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:17px;flex-shrink:0}
 .side-brand{font-weight:600;font-size:15px;letter-spacing:-.3px}
-.side-sub{font-size:10px;color:rgba(255,255,255,0.35);margin-top:2px;font-family:'DM Mono',monospace;letter-spacing:.6px}
-.side-nav{padding:14px 10px;flex:1}
-.nav-lbl{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,0.28);padding:0 8px;margin:14px 0 5px}
+.side-sub{font-size:10px;color:rgba(255,255,255,0.3);margin-top:2px;font-family:'DM Mono',monospace;letter-spacing:.5px}
+.side-nav{padding:12px 10px;flex:1;overflow-y:auto}
+.nav-lbl{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,0.25);padding:0 8px;margin:14px 0 5px}
 .nav-it{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;color:rgba(255,255,255,0.5);font-size:13px;cursor:pointer;transition:all .15s;margin-bottom:2px;user-select:none}
 .nav-it svg{width:15px;height:15px;flex-shrink:0;opacity:.7}
 .nav-it:hover{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.85)}
 .nav-it.on{background:rgba(255,121,0,0.16);color:var(--or)}
 .nav-it.on svg{opacity:1}
-.side-foot{padding:14px 18px;border-top:1px solid rgba(255,255,255,0.07);font-size:10px;color:rgba(255,255,255,0.22);font-family:'DM Mono',monospace;line-height:1.7}
-.side-badge{display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:9px;font-weight:500;margin-left:auto;font-family:'DM Mono',monospace}
+.side-badge{display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:9px;font-weight:600;margin-left:auto;font-family:'DM Mono',monospace}
 .side-badge.ok{background:rgba(22,163,74,0.25);color:#4ade80}
 .side-badge.warn{background:rgba(217,119,6,0.25);color:#fbbf24}
+.side-badge.crit{background:rgba(185,28,28,0.3);color:#fca5a5;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.side-foot{padding:12px 18px;border-top:1px solid rgba(255,255,255,0.07);font-size:10px;color:rgba(255,255,255,0.2);font-family:'DM Mono',monospace;line-height:1.8}
 
-.main{margin-left:228px;flex:1;display:flex;flex-direction:column}
-.topbar{background:var(--sur);border-bottom:1px solid var(--bdr);padding:13px 26px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+/* MAIN */
+.main{margin-left:232px;flex:1;display:flex;flex-direction:column}
+.topbar{background:var(--sur);border-bottom:1px solid var(--bdr);padding:12px 26px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
 .topbar-l{display:flex;flex-direction:column}
 .topbar-title{font-size:16px;font-weight:600;letter-spacing:-.3px}
 .topbar-sub{font-size:11px;color:var(--txt2);margin-top:1px}
 .topbar-r{display:flex;align-items:center;gap:8px}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:'DM Sans',sans-serif;white-space:nowrap}
-.btn svg{width:14px;height:14px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:'DM Sans',sans-serif;white-space:nowrap}
+.btn svg{width:13px;height:13px}
 .btn-ghost{background:transparent;color:var(--txt2);border:1px solid var(--bdr2)}
 .btn-ghost:hover{background:var(--bg);color:var(--txt)}
 .btn-or{background:var(--or);color:#fff}
 .btn-or:hover{background:var(--or2)}
-.btn-red{background:var(--red-bg);color:var(--red);border:1px solid rgba(215,62,62,0.2)}
+.btn-red{background:var(--forc-crit-bg);color:var(--forc-crit);border:1px solid var(--forc-crit-bdr)}
 .btn-red:hover{background:#fee2e2}
+.btn-amb{background:var(--forc-urg-bg);color:var(--forc-urg);border:1px solid var(--forc-urg-bdr)}
+.content{padding:20px 26px;flex:1}
 
-.content{padding:22px 26px;flex:1}
+/* FORCLUSION BANNER */
+.forc-banner{border-radius:var(--rl);padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:14px;border:1.5px solid}
+.forc-banner.crit{background:var(--forc-crit-bg);border-color:var(--forc-crit-bdr)}
+.forc-banner.urg{background:var(--forc-urg-bg);border-color:var(--forc-urg-bdr)}
+.forc-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
+.forc-banner-txt{flex:1}
+.forc-banner-title{font-size:13px;font-weight:600}
+.forc-banner-sub{font-size:12px;opacity:.75;margin-top:2px}
 
-/* IMPORT ZONE */
-.import-zone{background:var(--sur);border:1.5px dashed var(--bdr2);border-radius:var(--rl);padding:40px 32px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+/* FORCLUSION PILL */
+.fpill{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;border:1px solid;white-space:nowrap}
+.fpill.crit{background:var(--forc-crit-bg);color:var(--forc-crit);border-color:var(--forc-crit-bdr)}
+.fpill.urg{background:var(--forc-urg-bg);color:var(--forc-urg);border-color:var(--forc-urg-bdr)}
+.fpill.warn{background:var(--forc-warn-bg);color:var(--forc-warn);border-color:var(--forc-warn-bdr)}
+.fpill.ok{background:var(--forc-ok-bg);color:var(--forc-ok);border-color:var(--forc-ok-bdr)}
+.fpill.dead{background:var(--forc-dead-bg);color:var(--forc-dead);border-color:var(--forc-dead-bdr);text-decoration:line-through}
+
+/* IMPORT */
+.import-zone{background:var(--sur);border:1.5px dashed var(--bdr2);border-radius:var(--rl);padding:36px 28px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
 .import-zone:hover,.import-zone.drag{border-color:var(--or);background:var(--or-bg)}
 .import-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
-.import-icon{width:48px;height:48px;margin:0 auto 14px;background:var(--bg2);border-radius:12px;display:flex;align-items:center;justify-content:center}
-.import-icon svg{width:24px;height:24px;color:var(--txt2)}
-.import-title{font-size:15px;font-weight:600;margin-bottom:6px}
-.import-sub{font-size:13px;color:var(--txt2)}
-.import-hint{font-size:11px;color:var(--txt3);margin-top:8px;font-family:'DM Mono',monospace}
-
-.import-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px}
-.import-card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:20px;position:relative;overflow:hidden}
+.import-icon{width:44px;height:44px;margin:0 auto 12px;background:var(--bg2);border-radius:11px;display:flex;align-items:center;justify-content:center}
+.import-icon svg{width:22px;height:22px;color:var(--txt2)}
+.import-title{font-size:14px;font-weight:600;margin-bottom:5px}
+.import-sub{font-size:12px;color:var(--txt2)}
+.import-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.import-card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:18px}
 .import-card.loaded{border-color:rgba(22,163,74,0.35)}
 .import-card-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.import-card-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.import-card-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .import-card-icon.f1{background:var(--or-bg)}
 .import-card-icon.f2{background:var(--blu-bg)}
-.import-card-icon svg{width:18px;height:18px}
+.import-card-icon svg{width:17px;height:17px}
 .import-card-label{font-size:13px;font-weight:600}
 .import-card-sub{font-size:11px;color:var(--txt2);margin-top:1px}
 .import-status{display:flex;align-items:center;gap:6px;font-size:12px;padding:6px 10px;border-radius:7px;margin-top:8px}
 .import-status.idle{background:var(--bg2);color:var(--txt2)}
 .import-status.ok{background:var(--grn-bg);color:var(--grn)}
 .import-status.err{background:var(--red-bg);color:var(--red)}
-.dot-status{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.dot-status.idle{background:var(--txt3)}
-.dot-status.ok{background:var(--grn)}
-.dot-status.err{background:var(--red)}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dot.idle{background:var(--txt3)}.dot.ok{background:var(--grn)}.dot.err{background:var(--red)}
 
 /* FILTERS */
-.fbar{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:14px 18px;margin-bottom:18px;display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.fbar{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:13px 16px;margin-bottom:16px;display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
 .fg{display:flex;flex-direction:column;gap:3px}
 .flbl{font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px}
-.fsel,.finp{border:1px solid var(--bdr2);border-radius:8px;padding:6px 9px;font-size:12px;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);cursor:pointer;outline:none;transition:border-color .15s}
+.fsel,.finp{border:1px solid var(--bdr2);border-radius:7px;padding:5px 8px;font-size:12px;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);outline:none;transition:border-color .15s;cursor:pointer}
 .fsel:focus,.finp:focus{border-color:var(--or)}
-.finp{width:170px}
-.fdiv{width:1px;height:32px;background:var(--bdr);margin-bottom:1px}
+.finp{width:160px}
+.fdiv{width:1px;height:30px;background:var(--bdr);margin-bottom:1px}
 
 /* KPIs */
-.kgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
-.kcard{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:16px 18px;position:relative;overflow:hidden}
-.klbl{font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px}
-.kval{font-size:26px;font-weight:600;letter-spacing:-1px;font-family:'DM Mono',monospace;line-height:1}
-.kval.r{color:var(--red)}
-.kval.a{color:var(--amb)}
-.kval.g{color:var(--grn)}
-.kval.b{color:var(--blu)}
-.kval.o{color:var(--or)}
-.ksub{margin-top:6px;font-size:11px;color:var(--txt2)}
+.kgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:11px;margin-bottom:16px}
+.kcard{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:14px 16px;position:relative;overflow:hidden}
+.kcard.alert-crit{border-color:var(--forc-crit-bdr);background:var(--forc-crit-bg)}
+.kcard.alert-urg{border-color:var(--forc-urg-bdr);background:var(--forc-urg-bg)}
+.klbl{font-size:9px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;line-height:1.3}
+.kval{font-size:24px;font-weight:600;letter-spacing:-1px;font-family:'DM Mono',monospace;line-height:1}
+.kval.r{color:var(--forc-crit)}.kval.a{color:var(--amb)}.kval.g{color:var(--grn)}.kval.b{color:var(--blu)}.kval.o{color:var(--or)}.kval.pu{color:var(--pur)}
+.ksub{margin-top:5px;font-size:10px;color:var(--txt2)}
 .kacc{position:absolute;bottom:0;left:0;right:0;height:3px}
-.kacc.r{background:var(--red)}
-.kacc.a{background:var(--amb)}
-.kacc.g{background:var(--grn)}
-.kacc.b{background:var(--blu)}
-.kacc.o{background:var(--or)}
+.kacc.r{background:var(--forc-crit)}.kacc.a{background:var(--amb)}.kacc.g{background:var(--grn)}.kacc.b{background:var(--blu)}.kacc.o{background:var(--or)}.kacc.pu{background:var(--pur)}
 
 /* CHARTS */
-.crow{display:grid;grid-template-columns:3fr 2fr;gap:14px;margin-bottom:18px}
-.crow3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
-.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:18px 20px}
-.card-h{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.crow{display:grid;grid-template-columns:3fr 2fr;gap:14px;margin-bottom:16px}
+.crow3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:16px 18px}
+.card-h{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
 .card-title{font-size:13px;font-weight:600;letter-spacing:-.2px}
 .card-sub{font-size:11px;color:var(--txt2);margin-top:2px}
 
 /* BADGE */
 .badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:500;white-space:nowrap}
-.b-r{background:var(--red-bg);color:#991B1B}
-.b-a{background:var(--amb-bg);color:#92400E}
-.b-g{background:var(--grn-bg);color:#166534}
-.b-b{background:var(--blu-bg);color:#1E40AF}
-.b-p{background:var(--pur-bg);color:#5B21B6}
-.b-gray{background:var(--bg2);color:var(--txt2)}
+.b-r{background:var(--red-bg);color:#991B1B}.b-a{background:var(--amb-bg);color:#92400E}
+.b-g{background:var(--grn-bg);color:#166534}.b-b{background:var(--blu-bg);color:#1E40AF}
+.b-p{background:var(--pur-bg);color:#5B21B6}.b-gray{background:var(--bg2);color:var(--txt2)}
 
 /* TABLE */
 .tcard{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden}
-.thead-bar{padding:14px 18px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.thead-bar{padding:12px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .tabs{display:flex;gap:3px}
-.tab{padding:6px 12px;font-size:12px;font-weight:500;color:var(--txt2);cursor:pointer;border-radius:7px;transition:all .15s}
+.tab{padding:5px 11px;font-size:12px;font-weight:500;color:var(--txt2);cursor:pointer;border-radius:7px;transition:all .15s}
 .tab.on{background:var(--or-bg);color:var(--or)}
 .tab:hover:not(.on){background:var(--bg)}
+.tab.tab-crit.on{background:var(--forc-crit-bg);color:var(--forc-crit)}
+.tab.tab-urg.on{background:var(--forc-urg-bg);color:var(--forc-urg)}
+.tab.tab-dead.on{background:var(--forc-dead-bg);color:var(--forc-dead)}
 table{width:100%;border-collapse:collapse}
-thead th{padding:9px 14px;text-align:left;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;background:var(--sur2);border-bottom:1px solid var(--bdr);white-space:nowrap;cursor:pointer;user-select:none}
+thead th{padding:8px 12px;text-align:left;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;background:var(--sur2);border-bottom:1px solid var(--bdr);white-space:nowrap;cursor:pointer;user-select:none}
 thead th:hover{color:var(--txt)}
-thead th:first-child{padding-left:18px}
-thead th:last-child{padding-right:18px}
+thead th:first-child{padding-left:16px}
+thead th:last-child{padding-right:16px}
 tbody tr{border-bottom:1px solid var(--bdr);transition:background .1s;cursor:pointer}
 tbody tr:hover{background:var(--sur2)}
 tbody tr:last-child{border-bottom:none}
-tbody td{padding:11px 14px;font-size:12px;vertical-align:middle}
-tbody td:first-child{padding-left:18px}
-tbody td:last-child{padding-right:18px}
+tbody tr.row-crit{background:rgba(185,28,28,0.03)}
+tbody tr.row-urg{background:rgba(194,65,12,0.03)}
+tbody tr.row-dead{background:rgba(107,114,128,0.04);opacity:.65}
+tbody td{padding:10px 12px;font-size:12px;vertical-align:middle}
+tbody td:first-child{padding-left:16px}
+tbody td:last-child{padding-right:16px}
 .mono{font-family:'DM Mono',monospace}
-.cell-id{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:var(--or)}
-.sort-arrow{font-size:9px;margin-left:3px;opacity:.5}
+.cell-id{font-family:'DM Mono',monospace;font-size:11px;font-weight:600;color:var(--or)}
 
-/* ACTIVITE PILLS */
-.act-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:5px;font-size:10px;font-weight:500;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.act-1{background:var(--blu-bg);color:var(--blu)}
-.act-2{background:var(--pur-bg);color:var(--pur)}
-.act-3{background:var(--amb-bg);color:#92400E}
-.act-4{background:var(--red-bg);color:var(--red)}
-.act-5{background:var(--grn-bg);color:var(--grn)}
-.act-6{background:var(--grn-bg);color:var(--grn)}
+/* FORCLUSION BAR */
+.forc-bar-wrap{display:flex;align-items:center;gap:6px;min-width:120px}
+.forc-bar-bg{flex:1;height:5px;border-radius:5px;background:var(--bg2);overflow:hidden}
+.forc-bar-fill{height:100%;border-radius:5px;transition:width .3s}
+.forc-bar-pct{font-size:10px;font-family:'DM Mono',monospace;font-weight:500;width:28px;text-align:right;flex-shrink:0}
+
+/* STAT ROWS */
+.stat-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.stat-row-lbl{font-size:11px;color:var(--txt2);width:120px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stat-row-bar{flex:1}.stat-row-val{font-size:11px;font-weight:500;font-family:'DM Mono',monospace;text-align:right;width:44px;flex-shrink:0}
+.pbar{height:4px;border-radius:4px;background:var(--bg2);overflow:hidden;margin-top:3px}
+.pfill{height:100%;border-radius:4px}
 
 /* PAGINATION */
-.pagi{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;border-top:1px solid var(--bdr);font-size:11px;color:var(--txt2)}
+.pagi{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--bdr);font-size:11px;color:var(--txt2)}
 .pbtns{display:flex;gap:3px}
 .pbtn{min-width:26px;height:26px;border-radius:6px;border:1px solid var(--bdr2);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;font-family:'DM Sans',sans-serif;color:var(--txt2);padding:0 5px;transition:all .1s}
 .pbtn:hover:not(:disabled){background:var(--bg)}
@@ -189,64 +197,42 @@ tbody td:last-child{padding-right:18px}
 /* MODAL */
 .moverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.42);z-index:300;align-items:center;justify-content:center;padding:20px}
 .moverlay.open{display:flex}
-.modal{background:var(--sur);border-radius:var(--rl);width:660px;max-height:88vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,0.18)}
-.mhead{padding:18px 22px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--sur);z-index:1}
-.mhead-title{font-size:15px;font-weight:600}
+.modal{background:var(--sur);border-radius:var(--rl);width:680px;max-height:88vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,0.18)}
+.mhead{padding:16px 22px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--sur);z-index:1}
 .mclose{width:28px;height:28px;border-radius:7px;background:var(--bg);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--txt2);font-size:16px;line-height:1}
-.mbody{padding:22px}
-.msec{margin-bottom:20px}
-.msec-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--txt3);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--bdr)}
+.mbody{padding:20px 22px}
+.msec{margin-bottom:18px}
+.msec-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--txt3);margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--bdr)}
 .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.mfield label{font-size:10px;color:var(--txt3);display:block;margin-bottom:3px}
+.mfield label{font-size:10px;color:var(--txt3);display:block;margin-bottom:2px}
 .mfield .v{font-size:13px;font-weight:500}
 .mfield .v.mono{font-family:'DM Mono',monospace;font-size:12px}
 
-/* ACTIVITES TIMELINE */
-.actl{padding:0}
-.act-item{display:grid;grid-template-columns:auto 1fr;gap:14px;padding:10px 0;border-bottom:1px solid var(--bdr)}
+/* FORCLUSION GAUGE */
+.forc-gauge{background:var(--bg2);border-radius:8px;padding:14px 16px;margin-bottom:14px}
+.forc-gauge-title{font-size:11px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.forc-gauge-bar{height:10px;border-radius:10px;background:var(--bg);overflow:hidden;margin-bottom:6px;position:relative}
+.forc-gauge-fill{height:100%;border-radius:10px;transition:width .5s}
+.forc-gauge-markers{position:relative;height:16px;margin-bottom:4px}
+.forc-gauge-marker{position:absolute;top:0;font-size:9px;color:var(--txt3);transform:translateX(-50%)}
+.forc-gauge-marker span{display:block;width:1px;height:8px;background:var(--txt3);margin:0 auto 1px}
+.forc-stats{display:flex;justify-content:space-between;font-size:11px;margin-top:4px}
+
+/* ACTIVITY ITEMS */
+.act-item{display:grid;grid-template-columns:auto 1fr;gap:12px;padding:9px 0;border-bottom:1px solid var(--bdr)}
 .act-item:last-child{border-bottom:none}
 .act-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0;margin-top:2px}
-.act-body{}
-.act-name{font-size:13px;font-weight:500;margin-bottom:4px}
-.act-meta{display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--txt2)}
-.act-meta span{display:flex;align-items:center;gap:3px}
+.act-meta{display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--txt2);margin-top:3px}
 
-/* PROGRESS BAR */
-.pbar{height:4px;border-radius:4px;background:var(--bg2);overflow:hidden;margin-top:4px}
-.pfill{height:100%;border-radius:4px;transition:width .3s}
+.view{display:none}.view.on{display:block}
 
-/* TIMELINE STRIP */
-.tstrip{display:flex;gap:0;overflow-x:auto;padding-bottom:4px}
-.tstrip-item{flex:1;min-width:80px;text-align:center;position:relative}
-.tstrip-item::before{content:'';position:absolute;top:11px;left:0;right:0;height:2px;background:var(--bdr2)}
-.tstrip-item:first-child::before{left:50%}
-.tstrip-item:last-child::before{right:50%}
-.tstrip-dot{width:24px;height:24px;border-radius:50%;border:2px solid var(--sur);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;position:relative;z-index:1;font-size:10px;font-weight:600}
-.tstrip-lbl{font-size:10px;color:var(--txt2);line-height:1.3}
-.tstrip-date{font-size:9px;color:var(--txt3);margin-top:2px;font-family:'DM Mono',monospace}
-
-/* EMPTY / LOAD */
-.empty{text-align:center;padding:60px 20px;color:var(--txt3)}
-.empty-icon{font-size:36px;margin-bottom:12px}
-.empty-title{font-size:15px;font-weight:600;color:var(--txt2);margin-bottom:6px}
-
-/* STAT ROWS */
-.stat-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.stat-row-lbl{font-size:12px;color:var(--txt2);width:130px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.stat-row-bar{flex:1}
-.stat-row-val{font-size:12px;font-weight:500;font-family:'DM Mono',monospace;text-align:right;width:50px;flex-shrink:0}
-
-/* VIEWS */
-.view{display:none}
-.view.on{display:block}
-
-/* ARH TABLE */
-.arh-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.arh-card{background:var(--sur2);border:1px solid var(--bdr);border-radius:9px;padding:12px 14px}
-.arh-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.arh-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
-.arh-name{font-size:13px;font-weight:500}
-.arh-sub{font-size:11px;color:var(--txt2)}
+/* ALERT MANAGER VIEW */
+.alert-section{margin-bottom:20px}
+.alert-section-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-radius:var(--r);margin-bottom:8px;border:1.5px solid}
+.alert-section-head.crit{background:var(--forc-crit-bg);border-color:var(--forc-crit-bdr)}
+.alert-section-head.urg{background:var(--forc-urg-bg);border-color:var(--forc-urg-bdr)}
+.alert-section-head.warn{background:var(--forc-warn-bg);border-color:var(--forc-warn-bdr)}
+.alert-section-head.dead{background:var(--forc-dead-bg);border-color:var(--forc-dead-bdr)}
 
 @media(max-width:1300px){.kgrid{grid-template-columns:repeat(3,1fr)}.crow{grid-template-columns:1fr}}
 </style>
@@ -266,8 +252,8 @@ tbody td:last-child{padding-right:18px}
     </div>
   </div>
   <nav class="side-nav">
-    <div class="nav-lbl">Import données</div>
-    <div class="nav-it on" onclick="nav(this,'import')">
+    <div class="nav-lbl admin-only" style="display:none">Import</div>
+    <div class="nav-it admin-only" style="display:none" onclick="nav(this,'import')">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M8 12l4-4 4 4M12 8v8"/></svg>
       Charger les fichiers
       <span class="side-badge warn" id="nb-files">0/2</span>
@@ -279,26 +265,34 @@ tbody td:last-child{padding-right:18px}
     </div>
     <div class="nav-it" onclick="nav(this,'table')">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 10h18M3 6h18M3 14h18M3 18h18"/></svg>
-      Détail dossiers
+      Tous les dossiers
+    </div>
+    <div class="nav-lbl">⚠ Forclusion</div>
+    <div class="nav-it" onclick="nav(this,'alertes')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Alertes &amp; priorités
+      <span class="side-badge crit" id="nb-alertes">—</span>
+    </div>
+    <div class="nav-it" onclick="nav(this,'manager')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      Rapport managers
+    </div>
+    <div class="nav-it" onclick="nav(this,'nettoyage')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+      Nettoyage forclos
     </div>
     <div class="nav-lbl">Analyse</div>
     <div class="nav-it" onclick="nav(this,'activites')">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
       Activités ARH
     </div>
-    <div class="nav-it" onclick="nav(this,'etats')">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-      États & délais
-    </div>
     <div class="nav-lbl">Export</div>
-    <div class="nav-it" onclick="exportCSV()">
+    <div class="nav-it" onclick="exportCSV('filtered')">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 12l-4 4-4-4M12 8v8"/></svg>
       Exporter CSV
     </div>
   </nav>
-  <div class="side-foot" id="side-foot">
-    Aucune donnée chargée<br>Importez les 2 fichiers
-  </div>
+  <div class="side-foot" id="side-foot">Aucune donnée chargée<br>Importez les 2 fichiers</div>
 </aside>
 
 <!-- MAIN -->
@@ -308,13 +302,13 @@ tbody td:last-child{padding-right:18px}
       <div class="topbar-title" id="topbar-title">Suivi des Rejets CPAM</div>
       <div class="topbar-sub" id="topbar-sub">Importez vos fichiers Excel pour démarrer</div>
     </div>
-    <div class="topbar-r">
+    <div class="topbar-r" id="topbar-r">
       <button class="btn btn-ghost" onclick="resetFilters()">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15"/></svg>
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15"/></svg>
         Réinitialiser
       </button>
-      <button class="btn btn-or" onclick="exportCSV()">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 12l-4 4-4-4M12 8v8"/></svg>
+      <button class="btn btn-or" onclick="exportCSV('filtered')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 12l-4 4-4-4M12 8v8"/></svg>
         Exporter
       </button>
     </div>
@@ -322,184 +316,149 @@ tbody td:last-child{padding-right:18px}
 
   <div class="content">
 
-    <!-- VIEW IMPORT -->
-    <div class="view on" id="view-import">
-      <div style="max-width:700px;margin:0 auto">
-        <div style="margin-bottom:22px">
-          <h2 style="font-size:18px;font-weight:600;margin-bottom:6px">Chargement des données</h2>
-          <p style="font-size:13px;color:var(--txt2)">Importez vos deux fichiers Excel. La jointure se fait automatiquement sur le champ <span style="font-family:'DM Mono',monospace;background:var(--bg2);padding:1px 6px;border-radius:4px">Num demande</span>.</p>
+    <!-- ==================== IMPORT ==================== -->
+    <div class="view" id="view-import">
+      <div style="max-width:680px;margin:0 auto">
+        <div style="margin-bottom:20px">
+          <h2 style="font-size:17px;font-weight:600;margin-bottom:6px">Chargement des données</h2>
+          <p style="font-size:13px;color:var(--txt2)">Importez vos deux exports Excel. La jointure sur <code style="background:var(--bg2);padding:1px 5px;border-radius:4px;font-size:12px">Num demande</code> est automatique. Le délai de forclusion de <strong>823 jours</strong> (2 ans 3 mois) est calculé à partir de la date de création.</p>
         </div>
-
         <div class="import-grid">
-          <!-- FICHIER 1 -->
           <div class="import-card" id="card-f1">
             <div class="import-card-head">
-              <div class="import-card-icon f1">
-                <svg fill="none" stroke="var(--or)" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-              </div>
-              <div>
-                <div class="import-card-label">Fichier Demandes</div>
-                <div class="import-card-sub">Num demande · Type · Lib état · Description · Date création · Lib acte</div>
-              </div>
+              <div class="import-card-icon f1"><svg fill="none" stroke="var(--or)" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+              <div><div class="import-card-label">Fichier Demandes</div><div class="import-card-sub">Num demande · État · Description · Date création · Lib acte</div></div>
             </div>
             <div class="import-zone" id="zone-f1" ondragover="dragOver(event,'zone-f1')" ondragleave="dragLeave('zone-f1')" ondrop="dropFile(event,'f1')">
               <input type="file" accept=".xlsx,.xls,.csv" onchange="loadFile(this,'f1')">
               <div style="pointer-events:none">
-                <div class="import-icon">
-                  <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M8 12l4-4 4 4M12 8v8"/></svg>
-                </div>
+                <div class="import-icon"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M8 12l4-4 4 4M12 8v8"/></svg></div>
                 <div class="import-title">Glisser-déposer ou cliquer</div>
                 <div class="import-sub">.xlsx · .xls · .csv</div>
               </div>
             </div>
-            <div class="import-status idle" id="status-f1">
-              <div class="dot-status idle" id="dot-f1"></div>
-              <span id="msg-f1">En attente du fichier…</span>
-            </div>
+            <div class="import-status idle" id="status-f1"><div class="dot idle" id="dot-f1"></div><span id="msg-f1">En attente…</span></div>
           </div>
-
-          <!-- FICHIER 2 -->
           <div class="import-card" id="card-f2">
             <div class="import-card-head">
-              <div class="import-card-icon f2">
-                <svg fill="none" stroke="var(--blu)" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-              </div>
-              <div>
-                <div class="import-card-label">Fichier Activités</div>
-                <div class="import-card-sub">Num demande · Lib activité · Dates · ARH traitant · Équipe</div>
-              </div>
+              <div class="import-card-icon f2"><svg fill="none" stroke="var(--blu)" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+              <div><div class="import-card-label">Fichier Activités</div><div class="import-card-sub">Num demande · Lib activité · Dates · ARH traitant · Équipe</div></div>
             </div>
             <div class="import-zone" id="zone-f2" ondragover="dragOver(event,'zone-f2')" ondragleave="dragLeave('zone-f2')" ondrop="dropFile(event,'f2')">
               <input type="file" accept=".xlsx,.xls,.csv" onchange="loadFile(this,'f2')">
               <div style="pointer-events:none">
-                <div class="import-icon">
-                  <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M8 12l4-4 4 4M12 8v8"/></svg>
-                </div>
+                <div class="import-icon"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M8 12l4-4 4 4M12 8v8"/></svg></div>
                 <div class="import-title">Glisser-déposer ou cliquer</div>
                 <div class="import-sub">.xlsx · .xls · .csv</div>
               </div>
             </div>
-            <div class="import-status idle" id="status-f2">
-              <div class="dot-status idle" id="dot-f2"></div>
-              <span id="msg-f2">En attente du fichier…</span>
-            </div>
+            <div class="import-status idle" id="status-f2"><div class="dot idle" id="dot-f2"></div><span id="msg-f2">En attente…</span></div>
           </div>
         </div>
-
         <div id="import-ready" style="display:none">
           <div style="background:var(--grn-bg);border:1px solid rgba(22,163,74,0.3);border-radius:var(--r);padding:14px 18px;display:flex;align-items:center;gap:12px">
             <svg fill="none" stroke="var(--grn)" stroke-width="2" viewBox="0 0 24 24" style="width:20px;height:20px;flex-shrink:0"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            <div>
-              <div style="font-size:13px;font-weight:600;color:var(--grn)">Les deux fichiers sont chargés et jointurés</div>
-              <div style="font-size:12px;color:var(--txt2);margin-top:2px" id="join-info">—</div>
-            </div>
-            <button class="btn btn-or" style="margin-left:auto" onclick="nav(document.querySelector('.nav-it:nth-child(3)'),'dashboard')">Voir le tableau de bord →</button>
+            <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--grn)">Fichiers chargés et jointurés</div><div style="font-size:12px;color:var(--txt2);margin-top:2px" id="join-info">—</div></div>
+            <button class="btn btn-or" onclick="nav(document.querySelectorAll('.nav-it')[2],'dashboard')">Tableau de bord →</button>
           </div>
         </div>
-
-        <div id="col-preview" style="display:none;margin-top:18px">
-          <div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--txt2)">COLONNES DÉTECTÉES</div>
+        <div id="col-preview" style="display:none;margin-top:16px">
+          <div style="font-size:11px;font-weight:600;margin-bottom:8px;color:var(--txt2)">COLONNES DÉTECTÉES</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="col-preview-inner"></div>
         </div>
       </div>
     </div>
 
-    <!-- VIEW DASHBOARD -->
-    <div class="view" id="view-dashboard">
-      <!-- FILTERS -->
+    <!-- ==================== DASHBOARD ==================== -->
+    <div class="view on" id="view-dashboard">
+      <div id="dash-banners"></div>
       <div class="fbar">
-        <div class="fg">
-          <div class="flbl">État demande</div>
-          <select class="fsel" id="f-etat" onchange="applyFilters()">
+        <div class="fg"><div class="flbl">État demande</div><select class="fsel" id="f-etat" onchange="applyFilters()"><option value="">Tous</option></select></div>
+        <div class="fg"><div class="flbl">Période création</div><select class="fsel" id="f-periode" onchange="applyFilters()"><option value="">Toute période</option></select></div>
+        <div class="fg"><div class="flbl">Forclusion</div>
+          <select class="fsel" id="f-forc" onchange="applyFilters()">
             <option value="">Tous</option>
-            <option>En cours</option>
-            <option>En attente</option>
-            <option>Clôturé</option>
-            <option>Annulé</option>
+            <option value="crit">🔴 Critique (&lt; 30j)</option>
+            <option value="urg">🟠 Urgent (&lt; 6 mois)</option>
+            <option value="warn">🟡 Vigilance (6–12 mois)</option>
+            <option value="ok">🟢 OK (&gt; 12 mois)</option>
+            <option value="dead">⚫ Forclos</option>
           </select>
         </div>
-        <div class="fg">
-          <div class="flbl">Période (création)</div>
-          <select class="fsel" id="f-periode" onchange="applyFilters()">
-            <option value="">Toute période</option>
-          </select>
-        </div>
-        <div class="fg">
-          <div class="flbl">Dernière activité</div>
-          <select class="fsel" id="f-activite" onchange="applyFilters()">
-            <option value="">Toutes</option>
-          </select>
-        </div>
-        <div class="fg">
-          <div class="flbl">ARH traitant</div>
-          <select class="fsel" id="f-arh" onchange="applyFilters()">
-            <option value="">Tous</option>
-          </select>
-        </div>
+        <div class="fg"><div class="flbl">ARH traitant</div><select class="fsel" id="f-arh" onchange="applyFilters()"><option value="">Tous</option></select></div>
         <div class="fdiv"></div>
-        <div class="fg">
-          <div class="flbl">Recherche</div>
-          <div style="position:relative">
-            <input type="text" class="finp" id="f-search" placeholder="Num demande…" oninput="applyFilters()">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:13px;height:13px;position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--txt3)"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-          </div>
+        <div class="fg"><div class="flbl">Recherche</div>
+          <div style="position:relative"><input type="text" class="finp" id="f-search" placeholder="Num demande…" oninput="applyFilters()">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:12px;height:12px;position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--txt3)"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div>
         </div>
       </div>
-
-      <!-- KPIs -->
       <div class="kgrid">
-        <div class="kcard"><div class="klbl">Total dossiers</div><div class="kval b" id="k-total">—</div><div class="ksub" id="k-total-sub">—</div><div class="kacc b"></div></div>
-        <div class="kcard"><div class="klbl">En cours</div><div class="kval a" id="k-encours">—</div><div class="ksub" id="k-encours-sub">—</div><div class="kacc a"></div></div>
-        <div class="kcard"><div class="klbl">En attente</div><div class="kval r" id="k-attente">—</div><div class="ksub">Nécessitent une action</div><div class="kacc r"></div></div>
-        <div class="kcard"><div class="klbl">Sans activité récente</div><div class="kval r" id="k-inactif">—</div><div class="ksub">> 30 jours sans activité</div><div class="kacc r"></div></div>
-        <div class="kcard"><div class="klbl">Durée moy. traitement</div><div class="kval g" id="k-duree">—</div><div class="ksub">Jours (activité → fin)</div><div class="kacc g"></div></div>
+        <div class="kcard"><div class="klbl">Total dossiers actifs</div><div class="kval b" id="k-total">—</div><div class="ksub" id="k-total-sub">—</div><div class="kacc b"></div></div>
+        <div class="kcard alert-crit" id="kc-crit"><div class="klbl">🔴 Critique &lt; 30j</div><div class="kval r" id="k-crit">—</div><div class="ksub">Forclusion imminente</div><div class="kacc r"></div></div>
+        <div class="kcard alert-urg" id="kc-urg"><div class="klbl">🟠 Urgent &lt; 6 mois</div><div class="kval a" id="k-urg">—</div><div class="ksub">À traiter en priorité</div><div class="kacc a"></div></div>
+        <div class="kcard"><div class="klbl">🟡 Vigilance 6–12 mois</div><div class="kval pu" id="k-warn">—</div><div class="ksub">Surveiller</div><div class="kacc pu"></div></div>
+        <div class="kcard"><div class="klbl">🟢 OK &gt; 12 mois</div><div class="kval g" id="k-ok">—</div><div class="ksub">Hors zone de risque</div><div class="kacc g"></div></div>
+        <div class="kcard"><div class="klbl">⚫ Forclos (perdus)</div><div class="kval" style="color:var(--txt3)" id="k-dead">—</div><div class="ksub">Délai dépassé</div><div class="kacc" style="background:var(--txt3)"></div></div>
       </div>
-
-      <!-- CHARTS -->
       <div class="crow">
         <div class="card">
-          <div class="card-h">
-            <div><div class="card-title">Évolution mensuelle des demandes</div><div class="card-sub">Par mois de création</div></div>
-          </div>
-          <div style="position:relative;height:230px"><canvas id="ch-evol" role="img" aria-label="Évolution mensuelle">Données mensuelles</canvas></div>
+          <div class="card-h"><div><div class="card-title">Évolution mensuelle des créations</div><div class="card-sub">Par mois · coloré par niveau de risque forclusion actuel</div></div></div>
+          <div style="position:relative;height:220px"><canvas id="ch-evol" role="img" aria-label="Évolution mensuelle">Données</canvas></div>
         </div>
         <div class="card">
-          <div class="card-h"><div><div class="card-title">Répartition par état</div><div class="card-sub">Lib état demande</div></div></div>
-          <div style="position:relative;height:190px"><canvas id="ch-etat" role="img" aria-label="États des demandes">États</canvas></div>
-          <div id="etat-legend" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--txt2)"></div>
+          <div class="card-h"><div><div class="card-title">Répartition par état</div></div></div>
+          <div style="position:relative;height:180px"><canvas id="ch-etat" role="img" aria-label="États">États</canvas></div>
+          <div id="etat-legend" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--txt2)"></div>
         </div>
       </div>
-
       <div class="crow3">
-        <div class="card">
-          <div class="card-h"><div class="card-title">Top activités en cours</div></div>
-          <div id="top-activites"></div>
+        <div class="card" style="grid-column:span 2">
+          <div class="card-h"><div><div class="card-title">Horizon de forclusion — dossiers actifs</div><div class="card-sub">Distribution par tranche de délai restant</div></div></div>
+          <div style="position:relative;height:180px"><canvas id="ch-forc" role="img" aria-label="Forclusion">Forclusion</canvas></div>
         </div>
         <div class="card">
-          <div class="card-h"><div class="card-title">Ancienneté dossiers actifs</div></div>
+          <div class="card-h"><div class="card-title">Ancienneté dossiers</div></div>
           <div id="anciennete"></div>
-        </div>
-        <div class="card">
-          <div class="card-h"><div class="card-title">ARH — volume dossiers</div></div>
-          <div id="top-arh"></div>
         </div>
       </div>
     </div>
 
-    <!-- VIEW TABLE -->
+    <!-- ==================== TABLE ==================== -->
     <div class="view" id="view-table">
+      <div class="fbar">
+        <div class="fg"><div class="flbl">État</div><select class="fsel" id="ft-etat" onchange="applyFilters()"><option value="">Tous</option></select></div>
+        <div class="fg"><div class="flbl">Forclusion</div>
+          <select class="fsel" id="ft-forc" onchange="applyFilters()">
+            <option value="">Tous</option>
+            <option value="crit">🔴 Critique</option>
+            <option value="urg">🟠 Urgent</option>
+            <option value="warn">🟡 Vigilance</option>
+            <option value="ok">🟢 OK</option>
+            <option value="dead">⚫ Forclos</option>
+          </select>
+        </div>
+        <div class="fg"><div class="flbl">ARH</div><select class="fsel" id="ft-arh" onchange="applyFilters()"><option value="">Tous</option></select></div>
+        <div class="fdiv"></div>
+        <div class="fg"><div class="flbl">Recherche</div>
+          <div style="position:relative"><input type="text" class="finp" id="ft-search" placeholder="Num demande…" oninput="applyFilters()" style="padding-left:28px">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:12px;height:12px;position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--txt3)"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div>
+        </div>
+      </div>
       <div class="tcard">
         <div class="thead-bar">
           <div class="tabs">
-            <div class="tab on" onclick="setTab(this,'')">Tous <span id="tab-cnt-all" style="font-family:'DM Mono',monospace;font-size:10px;margin-left:4px"></span></div>
-            <div class="tab" onclick="setTab(this,'En cours')">En cours <span id="tab-cnt-encours" style="font-family:'DM Mono',monospace;font-size:10px;margin-left:4px"></span></div>
-            <div class="tab" onclick="setTab(this,'En attente')">En attente <span id="tab-cnt-attente" style="font-family:'DM Mono',monospace;font-size:10px;margin-left:4px"></span></div>
+            <div class="tab on" onclick="setTab(this,'')">Tous <span id="tc-all" style="font-family:'DM Mono',monospace;font-size:10px"></span></div>
+            <div class="tab tab-crit" onclick="setTab(this,'crit')">🔴 Critique <span id="tc-crit" style="font-family:'DM Mono',monospace;font-size:10px"></span></div>
+            <div class="tab tab-urg" onclick="setTab(this,'urg')">🟠 Urgent <span id="tc-urg" style="font-family:'DM Mono',monospace;font-size:10px"></span></div>
+            <div class="tab" onclick="setTab(this,'warn')">🟡 Vigilance <span id="tc-warn" style="font-family:'DM Mono',monospace;font-size:10px"></span></div>
+            <div class="tab" onclick="setTab(this,'ok')">🟢 OK <span id="tc-ok" style="font-family:'DM Mono',monospace;font-size:10px"></span></div>
+            <div class="tab tab-dead" onclick="setTab(this,'dead')">⚫ Forclos <span id="tc-dead" style="font-family:'DM Mono',monospace;font-size:10px"></span></div>
           </div>
           <div style="display:flex;gap:8px;align-items:center">
             <select class="fsel" id="t-sort" onchange="renderTable()" style="font-size:11px">
+              <option value="forc-asc">Forclusion ↑ (urgent d'abord)</option>
               <option value="date-desc">Date créa. ↓</option>
               <option value="date-asc">Date créa. ↑</option>
-              <option value="act-desc">Dernière activité ↓</option>
               <option value="age-desc">Ancienneté ↓</option>
             </select>
             <span style="font-size:12px;color:var(--txt2)"><span id="t-count">—</span> dossiers</span>
@@ -507,79 +466,100 @@ tbody td:last-child{padding-right:18px}
         </div>
         <div style="overflow-x:auto">
           <table>
-            <thead>
-              <tr>
-                <th>Num demande</th>
-                <th>Type</th>
-                <th>État</th>
-                <th>Date création</th>
-                <th>Âge (j)</th>
-                <th>Dernière activité</th>
-                <th>Date fin activité</th>
-                <th>ARH traitant</th>
-                <th>Équipe</th>
-                <th>Nb activités</th>
-                <th></th>
-              </tr>
-            </thead>
+            <thead><tr>
+              <th>Num demande</th>
+              <th>Type</th>
+              <th>État</th>
+              <th>Date création</th>
+              <th>Âge (j)</th>
+              <th>Date limite forclusion</th>
+              <th>Délai restant</th>
+              <th>Avancement forclusion</th>
+              <th>Dernière activité</th>
+              <th>ARH traitant</th>
+              <th></th>
+            </tr></thead>
             <tbody id="t-body"></tbody>
           </table>
         </div>
-        <div class="pagi">
-          <span id="p-info">—</span>
-          <div class="pbtns" id="p-btns"></div>
-        </div>
+        <div class="pagi"><span id="p-info">—</span><div class="pbtns" id="p-btns"></div></div>
       </div>
     </div>
 
-    <!-- VIEW ACTIVITES -->
+    <!-- ==================== ALERTES ==================== -->
+    <div class="view" id="view-alertes">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <h2 style="font-size:16px;font-weight:600">Alertes forclusion</h2>
+          <p style="font-size:12px;color:var(--txt2);margin-top:2px">Dossiers classés par urgence. Délai légal : <strong>823 jours</strong> à partir de la date de création.</p>
+        </div>
+        <button class="btn btn-or" onclick="exportCSV('urgent')">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 12l-4 4-4-4M12 8v8"/></svg>
+          Exporter urgents (&lt; 6 mois)
+        </button>
+      </div>
+      <div id="alertes-content"></div>
+    </div>
+
+    <!-- ==================== MANAGER ==================== -->
+    <div class="view" id="view-manager">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <h2 style="font-size:16px;font-weight:600">Rapport managers — Dossiers à traiter dans les 6 mois</h2>
+          <p style="font-size:12px;color:var(--txt2);margin-top:2px">Dossiers dont la date limite de forclusion expire dans moins de 6 mois (180 jours). À partager avec les responsables d'équipe.</p>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost" onclick="printManager()">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Imprimer
+          </button>
+          <button class="btn btn-or" onclick="exportCSV('manager')">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 12l-4 4-4-4M12 8v8"/></svg>
+            Exporter pour managers
+          </button>
+        </div>
+      </div>
+      <div id="manager-content"></div>
+    </div>
+
+    <!-- ==================== NETTOYAGE ==================== -->
+    <div class="view" id="view-nettoyage">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <h2 style="font-size:16px;font-weight:600">Nettoyage — Dossiers forclos</h2>
+          <p style="font-size:12px;color:var(--txt2);margin-top:2px">Ces dossiers ont dépassé le délai de forclusion de 823 jours. Aucune récupération de fonds n'est possible. Ils peuvent être archivés ou clôturés.</p>
+        </div>
+        <button class="btn btn-red" onclick="exportCSV('dead')">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 12l-4 4-4-4M12 8v8"/></svg>
+          Exporter liste forclos
+        </button>
+      </div>
+      <div id="nettoyage-content"></div>
+    </div>
+
+    <!-- ==================== ACTIVITES ==================== -->
     <div class="view" id="view-activites">
       <div class="crow">
         <div class="card">
-          <div class="card-h"><div><div class="card-title">Distribution des types d'activités</div><div class="card-sub">Par libellé d'activité</div></div></div>
-          <div style="position:relative;height:280px"><canvas id="ch-act" role="img" aria-label="Activités">Activités</canvas></div>
+          <div class="card-h"><div><div class="card-title">Distribution des types d'activités</div><div class="card-sub">Par libellé</div></div></div>
+          <div style="position:relative;height:260px"><canvas id="ch-act" role="img" aria-label="Activités">Activités</canvas></div>
         </div>
         <div class="card">
           <div class="card-h"><div class="card-title">Charge par ARH</div></div>
           <div id="arh-charge"></div>
         </div>
       </div>
-      <div class="card">
-        <div class="card-h"><div><div class="card-title">Matrice dossiers × activités</div><div class="card-sub">Dernier statut de chaque dossier actif</div></div></div>
-        <div id="matrice-act" style="overflow-x:auto"></div>
-      </div>
     </div>
 
-    <!-- VIEW ETATS -->
-    <div class="view" id="view-etats">
-      <div class="crow3">
-        <div class="card" style="grid-column:span 2">
-          <div class="card-h"><div><div class="card-title">Délai moyen par type d'activité</div><div class="card-sub">Jours entre date début et fin d'activité</div></div></div>
-          <div style="position:relative;height:240px"><canvas id="ch-delai" role="img" aria-label="Délais par activité">Délais</canvas></div>
-        </div>
-        <div class="card">
-          <div class="card-h"><div class="card-title">Dossiers sans activité</div></div>
-          <div id="sans-act-list"></div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-h"><div><div class="card-title">Chronologie globale des activités</div><div class="card-sub">Tous dossiers — activités par mois</div></div></div>
-        <div style="position:relative;height:220px"><canvas id="ch-chrono" role="img" aria-label="Chronologie">Chronologie</canvas></div>
-      </div>
-    </div>
-
-  </div><!-- /content -->
+  </div>
 </main>
 </div>
 
-<!-- MODAL DETAIL -->
+<!-- MODAL -->
 <div class="moverlay" id="moverlay" onclick="closeMod(event)">
   <div class="modal">
     <div class="mhead">
-      <div>
-        <div class="mhead-title" id="m-title">—</div>
-        <div style="font-size:11px;color:var(--txt2);margin-top:2px" id="m-sub">—</div>
-      </div>
+      <div><div style="font-size:15px;font-weight:600" id="m-title">—</div><div style="font-size:11px;color:var(--txt2);margin-top:2px" id="m-sub">—</div></div>
       <button class="mclose" onclick="document.getElementById('moverlay').classList.remove('open')">×</button>
     </div>
     <div class="mbody" id="m-body"></div>
@@ -587,168 +567,185 @@ tbody td:last-child{padding-right:18px}
 </div>
 
 <script>
-// =====================================================
+// ================================================================
+// CONSTANTS
+// ================================================================
+const FORC_DAYS = 823;        // délai de forclusion en jours
+const CRIT_DAYS = 30;         // critique : < 30j restants
+const URG_DAYS  = 180;        // urgent   : < 6 mois restants
+const WARN_DAYS = 365;        // vigilance: < 12 mois restants
+
+// ================================================================
 // STATE
-// =====================================================
-let demandes = [];   // fichier 1
-let activites = [];  // fichier 2
-let joined = [];     // jointure
-let filtered = [];
-let currentTab = '';
-let currentPage = 1;
-const PAGE = 15;
-let charts = {};
-let sortCol = 'date-desc';
-let f1Loaded = false, f2Loaded = false;
+// ================================================================
+let demandes=[], activites=[], joined=[], filtered=[];
+let currentTab='', currentPage=1;
+const PAGE=20;
+let charts={};
+let f1Loaded=false, f2Loaded=false;
 
-// =====================================================
+// ================================================================
+// FORCLUSION LOGIC
+// ================================================================
+function getForclusionInfo(d){
+  if(!d.dateCreation) return {status:'unknown',jRestants:null,dateLimit:null,pct:0};
+  const dateLimit = new Date(d.dateCreation.getTime() + FORC_DAYS*86400000);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const jRestants = Math.round((dateLimit - today) / 86400000);
+  const elapsed = FORC_DAYS - jRestants;
+  const pct = Math.min(100, Math.max(0, Math.round(elapsed/FORC_DAYS*100)));
+
+  let status;
+  if(jRestants < 0)         status='dead';
+  else if(jRestants <= CRIT_DAYS)  status='crit';
+  else if(jRestants <= URG_DAYS)   status='urg';
+  else if(jRestants <= WARN_DAYS)  status='warn';
+  else                              status='ok';
+
+  return {status, jRestants, dateLimit, pct};
+}
+
+const FORC_LABELS = {dead:'Forclos',crit:'Critique',urg:'Urgent',warn:'Vigilance',ok:'OK',unknown:'N/A'};
+const FORC_COLORS = {dead:'#6B7280',crit:'#B91C1C',urg:'#C2410C',warn:'#CA8A04',ok:'#15803D',unknown:'#9CA3AF'};
+
+function forcPill(fi){
+  if(!fi||fi.status==='unknown') return '<span class="fpill ok">N/A</span>';
+  const icons={dead:'⚫',crit:'🔴',urg:'🟠',warn:'🟡',ok:'🟢'};
+  const label = fi.jRestants!==null
+    ? (fi.jRestants<0 ? `Forclos +${Math.abs(fi.jRestants)}j` : `${fi.jRestants}j restants`)
+    : 'N/A';
+  return `<span class="fpill ${fi.status}">${icons[fi.status]} ${label}</span>`;
+}
+
+// ================================================================
 // FILE IMPORT
-// =====================================================
-function dragOver(e, id){ e.preventDefault(); document.getElementById(id).classList.add('drag'); }
-function dragLeave(id){ document.getElementById(id).classList.remove('drag'); }
-function dropFile(e, which){ e.preventDefault(); dragLeave('zone-'+which); const f=e.dataTransfer.files[0]; if(f) parseFile(f, which); }
-function loadFile(inp, which){ if(inp.files[0]) parseFile(inp.files[0], which); }
+// ================================================================
+function dragOver(e,id){e.preventDefault();document.getElementById(id).classList.add('drag')}
+function dragLeave(id){document.getElementById(id).classList.remove('drag')}
+function dropFile(e,w){e.preventDefault();dragLeave('zone-'+w);const f=e.dataTransfer.files[0];if(f)parseFile(f,w)}
+function loadFile(inp,w){if(inp.files[0])parseFile(inp.files[0],w)}
 
-function parseFile(file, which){
+function parseFile(file,which){
   setStatus(which,'idle','Lecture en cours…');
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const wb = XLSX.read(e.target.result, {type:'binary', cellDates:true});
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const data = XLSX.utils.sheet_to_json(ws, {defval:''});
-      if(which==='f1'){
-        demandes = data;
-        f1Loaded = true;
-        setStatus('f1','ok',`${data.length} lignes chargées · ${Object.keys(data[0]||{}).length} colonnes`);
-        document.getElementById('card-f1').classList.add('loaded');
-        showColPreview('f1', data);
-      } else {
-        activites = data;
-        f2Loaded = true;
-        setStatus('f2','ok',`${data.length} lignes chargées · ${Object.keys(data[0]||{}).length} colonnes`);
-        document.getElementById('card-f2').classList.add('loaded');
-        showColPreview('f2', data);
-      }
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'binary',cellDates:true});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const data=XLSX.utils.sheet_to_json(ws,{defval:''});
+      if(which==='f1'){demandes=data;f1Loaded=true;setStatus('f1','ok',`${data.length} lignes · ${Object.keys(data[0]||{}).length} colonnes`);document.getElementById('card-f1').classList.add('loaded');showColPreview('f1',data);}
+      else{activites=data;f2Loaded=true;setStatus('f2','ok',`${data.length} lignes · ${Object.keys(data[0]||{}).length} colonnes`);document.getElementById('card-f2').classList.add('loaded');showColPreview('f2',data);}
       updateFileBadge();
-      if(f1Loaded && f2Loaded) buildJoin();
-    } catch(err){
-      setStatus(which,'err','Erreur de lecture : '+err.message);
-    }
+      if(f1Loaded&&f2Loaded) buildJoin();
+    }catch(err){setStatus(which,'err','Erreur : '+err.message);}
   };
   reader.readAsBinaryString(file);
 }
 
-function setStatus(which, type, msg){
-  const s=document.getElementById('status-'+which);
-  const d=document.getElementById('dot-'+which);
-  s.className='import-status '+type;
-  d.className='dot-status '+type;
-  document.getElementById('msg-'+which).textContent=msg;
+function setStatus(w,type,msg){
+  const s=document.getElementById('status-'+w),d=document.getElementById('dot-'+w);
+  s.className='import-status '+type;d.className='dot '+type;document.getElementById('msg-'+w).textContent=msg;
 }
 
-function showColPreview(which, data){
-  const keys = Object.keys(data[0]||{});
-  const prev = document.getElementById('col-preview');
-  const inner = document.getElementById('col-preview-inner');
+function showColPreview(which,data){
+  const keys=Object.keys(data[0]||{});
+  const prev=document.getElementById('col-preview');
   prev.style.display='block';
-  const existing = inner.innerHTML;
-  const color = which==='f1' ? 'var(--or)' : 'var(--blu)';
-  const label = which==='f1' ? 'Demandes' : 'Activités';
-  const newHtml = `<div style="background:var(--sur2);border:1px solid var(--bdr);border-radius:9px;padding:12px 14px">
+  const color=which==='f1'?'var(--or)':'var(--blu)';
+  const label=which==='f1'?'Demandes':'Activités';
+  document.getElementById('col-preview-inner').innerHTML+=`<div style="background:var(--sur2);border:1px solid var(--bdr);border-radius:9px;padding:12px 14px">
     <div style="font-size:11px;font-weight:600;color:${color};margin-bottom:8px">${label}</div>
     <div style="display:flex;flex-wrap:wrap;gap:4px">${keys.map(k=>`<span style="font-size:10px;font-family:'DM Mono',monospace;background:var(--bg2);padding:2px 6px;border-radius:4px;color:var(--txt2)">${k}</span>`).join('')}</div>
   </div>`;
-  inner.innerHTML = existing + newHtml;
 }
 
-// =====================================================
+// ================================================================
 // JOIN
-// =====================================================
-function findCol(obj, candidates){
-  const keys = Object.keys(obj);
+// ================================================================
+function findCol(obj,candidates){
+  const keys=Object.keys(obj);
   for(const c of candidates){
-    const found = keys.find(k => k.toLowerCase().replace(/[\s_]/g,'').includes(c.toLowerCase().replace(/[\s_]/g,'')));
-    if(found) return found;
+    const f=keys.find(k=>k.toLowerCase().replace(/[\s_\-éèêàù]/g,'').includes(c.toLowerCase().replace(/[\s_\-éèêàù]/g,'')));
+    if(f) return f;
   }
   return null;
 }
 
 function buildJoin(){
-  if(!demandes.length || !activites.length) return;
+  const kD=findCol(demandes[0],['numdemande','numero','numdem'])||Object.keys(demandes[0])[0];
+  const kA=findCol(activites[0],['numdemande','numero','numdem'])||Object.keys(activites[0])[0];
+  const cEtat=findCol(demandes[0],['libetatdemande','etat','statut'])||'Lib état demande';
+  const cDesc=findCol(demandes[0],['descriptiondemande','description'])||'Description demande';
+  const cDate=findCol(demandes[0],['datecreation','datecrea','date'])||'Date création';
+  const cActe=findCol(demandes[0],['libacte','acte'])||'Lib acte';
+  const cType=findCol(demandes[0],['typedemande','type'])||'Type demande';
+  const cLibAct=findCol(activites[0],['libactivite','activite'])||'Lib activité';
+  const cDDebAct=findCol(activites[0],['datedebutactivite','datedebut'])||'Date début activité';
+  const cDFinAct=findCol(activites[0],['datefinactivite','datefin'])||'Date fin activité';
+  const cHDeb=findCol(activites[0],['heuredebutactivite','heuredebut'])||'Heure début activité';
+  const cHFin=findCol(activites[0],['heurefinactivite','heurefin'])||'Heure fin activité';
+  const cCUID=findCol(activites[0],['cuidarh','cuid','cuidarh'])||'CUID ARH traitant activité';
+  const cNomA=findCol(activites[0],['nomarh','nomtraitant','nomtrait'])||'Nom ARH traitant';
+  const cPrenA=findCol(activites[0],['prenomarh','prenomtraitant','prenomtrait','prenomtra','prenom'])||'Prénom ARH traitant';
+  const cEquipe=findCol(activites[0],['libelleequipe','equipe'])||'Libellé équipe ARH';
 
-  // Detect key columns
-  const keyD = findCol(demandes[0], ['numdemande','num_demande','numérodemande','numero','numdem']) || Object.keys(demandes[0])[0];
-  const keyA = findCol(activites[0], ['numdemande','num_demande','numérodemande','numero','numdem']) || Object.keys(activites[0])[0];
-  const colEtat = findCol(demandes[0], ['libetatdemande','etat','état','statut','libétatdemande']) || 'Lib état demande';
-  const colDesc = findCol(demandes[0], ['descriptiondemande','description','desc']) || 'Description demande';
-  const colDateCreation = findCol(demandes[0], ['datecreation','datecréation','date']) || 'Date création';
-  const colLibActe = findCol(demandes[0], ['libacte','acte','lib acte']) || 'Lib acte';
-  const colType = findCol(demandes[0], ['typedemande','type']) || 'Type demande';
-  const colLibAct = findCol(activites[0], ['libactivite','libactivité','activite','activité','libelleactivite']) || 'Lib activité';
-  const colDateDebAct = findCol(activites[0], ['datedebutactivite','datedebutact','datedébut']) || 'Date début activité';
-  const colDateFinAct = findCol(activites[0], ['datefinactivite','datefinact','datefin']) || 'Date fin activité';
-  const colHDebAct = findCol(activites[0], ['heuredebutactivite','heuredébut']) || 'Heure début activité';
-  const colHFinAct = findCol(activites[0], ['heurefinactivite','heurefin']) || 'Heure fin activité';
-  const colCUID = findCol(activites[0], ['cuidarh','cuid']) || 'CUID ARH traitant activité';
-  const colNomARH = findCol(activites[0], ['nomarh','nom']) || 'Nom ARH traitant';
-  const colPrenomARH = findCol(activites[0], ['prenomarh','prenom']) || 'Prénom ARH traitant';
-  const colEquipe = findCol(activites[0], ['libelleequipe','equipe','équipe']) || 'Libellé équipe ARH';
-
-  // Group activites by num demande
-  const actMap = {};
-  activites.forEach(a => {
-    const num = String(a[keyA]||'').trim();
-    if(!actMap[num]) actMap[num] = [];
-    actMap[num].push(a);
+  const actMap={};
+  activites.forEach(a=>{
+    const n=String(a[kA]||'').trim();
+    if(!actMap[n]) actMap[n]=[];
+    actMap[n].push(a);
   });
 
-  // Join
-  joined = demandes.map(d => {
-    const num = String(d[keyD]||'').trim();
-    const acts = (actMap[num]||[]).map(a => ({
-      libActivite: String(a[colLibAct]||'').trim(),
-      dateDebut: parseDate(a[colDateDebAct]),
-      dateFin: parseDate(a[colDateFinAct]),
-      heureDebut: String(a[colHDebAct]||'').trim(),
-      heureFin: String(a[colHFinAct]||'').trim(),
-      cuid: String(a[colCUID]||'').trim(),
-      nomARH: String(a[colNomARH]||'').trim(),
-      prenomARH: String(a[colPrenomARH]||'').trim(),
-      equipe: String(a[colEquipe]||'').trim(),
-      _raw: a
+  joined=demandes.map(d=>{
+    const num=String(d[kD]||'').trim();
+    const acts=(actMap[num]||[]).map(a=>({
+      libActivite:String(a[cLibAct]||'').trim(),
+      dateDebut:parseDate(a[cDDebAct]),
+      dateFin:parseDate(a[cDFinAct]),
+      heureDebut:String(a[cHDeb]||'').trim(),
+      heureFin:String(a[cHFin]||'').trim(),
+      cuid:String(a[cCUID]||'').trim(),
+      nomARH:String(a[cNomA]||'').trim(),
+      prenomARH:String(a[cPrenA]||'').trim(),
+      equipe:String(a[cEquipe]||'').trim(),
     }));
+    acts.sort((a,b)=>(b.dateFin||b.dateDebut||0)-(a.dateFin||a.dateDebut||0));
+    const lastAct=acts[0];
+    const dateCreation=parseDate(d[cDate]);
+    const today=new Date();today.setHours(0,0,0,0);
+    const age=dateCreation?Math.round((today-dateCreation)/86400000):null;
 
-    // Sort acts by date fin desc → dernière activité
-    acts.sort((a,b)=> (b.dateFin||b.dateDebut||0) - (a.dateFin||a.dateDebut||0));
-    const lastAct = acts[0];
-    const dateCreation = parseDate(d[colDateCreation]);
-    const today = new Date(); today.setHours(0,0,0,0);
-    const age = dateCreation ? Math.round((today-dateCreation)/86400000) : null;
-
-    return {
-      numDemande: num,
-      type: String(d[colType]||'').trim(),
-      etat: String(d[colEtat]||'').trim(),
-      description: String(d[colDesc]||'').trim(),
+    const rec={
+      numDemande:num,
+      type:String(d[cType]||'').trim(),
+      etat:String(d[cEtat]||'').trim(),
+      description:String(d[cDesc]||'').trim(),
       dateCreation,
-      libActe: String(d[colLibActe]||'').trim(),
-      activites: acts,
-      dernActivite: lastAct ? lastAct.libActivite : '',
-      dateDernActivite: lastAct ? (lastAct.dateFin||lastAct.dateDebut) : null,
-      arbTraitant: lastAct ? `${lastAct.prenomARH} ${lastAct.nomARH}`.trim() : '',
-      equipe: lastAct ? lastAct.equipe : '',
-      nbActivites: acts.length,
+      libActe:String(d[cActe]||'').trim(),
+      activites:acts,
+      dernActivite:lastAct?lastAct.libActivite:'',
+      dateDernActivite:lastAct?(lastAct.dateFin||lastAct.dateDebut):null,
+      arbNom:lastAct?lastAct.nomARH:'',
+      arbPrenom:lastAct?lastAct.prenomARH:'',
+      arbCUID:lastAct?lastAct.cuid:'',
+      arbTraitant:lastAct?`${lastAct.prenomARH} ${lastAct.nomARH}`.trim():'',
+      equipe:lastAct?lastAct.equipe:'',
+      nbActivites:acts.length,
       age,
-      _raw: d
+      _raw:d
     };
+    rec.forc=getForclusionInfo(rec);
+    return rec;
   });
 
-  // Count joins
-  const withAct = joined.filter(d=>d.nbActivites>0).length;
-  document.getElementById('join-info').textContent = `${joined.length} demandes · ${withAct} jointurées avec des activités · ${joined.length-withAct} sans activité`;
+  const withAct=joined.filter(d=>d.nbActivites>0).length;
+  document.getElementById('join-info').textContent=`${joined.length} demandes · ${withAct} avec activités · Délai forclusion : 823 jours calculé`;
   document.getElementById('import-ready').style.display='block';
-  document.getElementById('side-foot').innerHTML = `${joined.length} demandes<br>${activites.length} activités`;
+  document.getElementById('side-foot').innerHTML=`${joined.length} demandes<br>${activites.length} activités<br>Forclusion : 823j`;
+
+  const deadCount=joined.filter(d=>d.forc.status==='dead').length;
+  const critCount=joined.filter(d=>d.forc.status==='crit').length;
+  document.getElementById('nb-alertes').textContent=critCount+deadCount;
 
   populateFilters();
   applyFilters();
@@ -757,63 +754,97 @@ function buildJoin(){
 function parseDate(v){
   if(!v) return null;
   if(v instanceof Date) return v;
-  if(typeof v === 'number') return new Date(Math.round((v-25569)*86400000)); // Excel serial
-  const s = String(v).trim();
+  if(typeof v==='number') return new Date(Math.round((v-25569)*86400000));
+  const s=String(v).trim();
   if(!s) return null;
-  // dd/mm/yyyy or dd/mm/yyyy hh:mm
-  const m1 = s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
-  if(m1) return new Date(+m1[3],+m1[2]-1,+m1[1]);
-  const d = new Date(s);
-  return isNaN(d) ? null : d;
+  const m=s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if(m) return new Date(+m[3],+m[2]-1,+m[1]);
+  const d2=new Date(s); return isNaN(d2)?null:d2;
 }
 
-function fmtDate(d){ if(!d) return '—'; return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'}); }
+// ARH display helpers
+function arbCell(d){
+  const nom=d.arbNom||'';const prenom=d.arbPrenom||'';const cuid=d.arbCUID||'';
+  if(!nom&&!prenom) return '<span style="color:var(--txt3)">—</span>';
+  return `<div style="font-size:12px;font-weight:600;line-height:1.3">${nom}</div>`
+       + (prenom?`<div style="font-size:11px;color:var(--txt2)">${prenom}</div>`:'')
+       + (cuid?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--txt3)">${cuid}</div>`:'');
+}
+function arbLabel(d){
+  const nom=d.arbNom||'';const prenom=d.arbPrenom||'';const cuid=d.arbCUID||'';
+  if(!nom&&!prenom) return '—';
+  return `${nom}${prenom?' '+prenom:''}${cuid?' ('+cuid+')':''}`;
+}
+function fmtDate(d){if(!d) return '—';return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});}
 
-// =====================================================
-// FILTERS POPULATE
-// =====================================================
+// ================================================================
+// POPULATE FILTERS
+// ================================================================
 function populateFilters(){
-  const etats = [...new Set(joined.map(d=>d.etat).filter(Boolean))].sort();
-  const sel = document.getElementById('f-etat');
-  sel.innerHTML='<option value="">Tous</option>'+etats.map(e=>`<option>${e}</option>`).join('');
-
-  // Periods (year-month)
-  const months = [...new Set(joined.map(d=>{
-    if(!d.dateCreation) return null;
-    return d.dateCreation.getFullYear()+'-'+String(d.dateCreation.getMonth()+1).padStart(2,'0');
-  }).filter(Boolean))].sort().reverse();
-  const psel = document.getElementById('f-periode');
-  psel.innerHTML='<option value="">Toute période</option>'+months.map(m=>`<option value="${m}">${m}</option>`).join('');
-
-  const acts = [...new Set(joined.flatMap(d=>d.activites.map(a=>a.libActivite)).filter(Boolean))].sort();
-  const asel = document.getElementById('f-activite');
-  asel.innerHTML='<option value="">Toutes</option>'+acts.map(a=>`<option>${a}</option>`).join('');
-
-  const arhs = [...new Set(joined.map(d=>d.arbTraitant).filter(Boolean))].sort();
-  const rsel = document.getElementById('f-arh');
-  rsel.innerHTML='<option value="">Tous</option>'+arhs.map(a=>`<option>${a}</option>`).join('');
+  const etats=[...new Set(joined.map(d=>d.etat).filter(Boolean))].sort();
+  ['f-etat','ft-etat'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    el.innerHTML='<option value="">Tous</option>'+etats.map(e=>`<option>${e}</option>`).join('');
+  });
+  const months=[...new Set(joined.map(d=>{if(!d.dateCreation)return null;return d.dateCreation.getFullYear()+'-'+String(d.dateCreation.getMonth()+1).padStart(2,'0');}).filter(Boolean))].sort().reverse();
+  const psel=document.getElementById('f-periode');
+  if(psel) psel.innerHTML='<option value="">Toute période</option>'+months.map(m=>`<option value="${m}">${m}</option>`).join('');
+  // Build ARH list with CUID for disambiguation
+  const arhMap={};
+  joined.forEach(d=>{
+    if(!d.arbTraitant) return;
+    const key=d.arbTraitant;
+    if(!arhMap[key]) arhMap[key]={label:d.arbTraitant,cuid:d.arbCUID};
+  });
+  const arhsSorted=Object.entries(arhMap).sort((a,b)=>a[0].localeCompare(b[0]));
+  ['f-arh','ft-arh'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    el.innerHTML='<option value="">Tous</option>'+joined.filter((d,i,a)=>d.arbTraitant&&a.findIndex(x=>x.arbTraitant===d.arbTraitant)===i).sort((a,b)=>a.arbNom.localeCompare(b.arbNom)).map(d=>`<option value="${d.arbTraitant}">${d.arbNom}${d.arbPrenom?' '+d.arbPrenom:''} ${d.arbCUID?'('+d.arbCUID+')':''}</option>`).join('');
+  });
 }
 
-// =====================================================
-// FILTERS APPLY
-// =====================================================
-function applyFilters(){
-  const etat = document.getElementById('f-etat')?.value||'';
-  const periode = document.getElementById('f-periode')?.value||'';
-  const activite = document.getElementById('f-activite')?.value||'';
-  const arh = document.getElementById('f-arh')?.value||'';
-  const search = (document.getElementById('f-search')?.value||'').toLowerCase();
+// ================================================================
+// FILTERS
+// ================================================================
+function getFilterValues(){
+  return{
+    etat:(document.getElementById('f-etat')||document.getElementById('ft-etat'))?.value||'',
+    periode:document.getElementById('f-periode')?.value||'',
+    forc:(document.getElementById('f-forc')||document.getElementById('ft-forc'))?.value||'',
+    arh:(document.getElementById('f-arh')||document.getElementById('ft-arh'))?.value||'',
+    search:(document.getElementById('f-search')||document.getElementById('ft-search'))?.value?.toLowerCase()||'',
+  };
+}
 
-  filtered = joined.filter(d=>{
-    if(etat && d.etat!==etat) return false;
-    if(periode && d.dateCreation){
-      const dp = d.dateCreation.getFullYear()+'-'+String(d.dateCreation.getMonth()+1).padStart(2,'0');
+function applyFilters(){
+  // Sync filter dropdowns between views
+  const v1Etat=document.getElementById('f-etat'),v2Etat=document.getElementById('ft-etat');
+  const v1Forc=document.getElementById('f-forc'),v2Forc=document.getElementById('ft-forc');
+  const v1Arh=document.getElementById('f-arh'),v2Arh=document.getElementById('ft-arh');
+  const v1S=document.getElementById('f-search'),v2S=document.getElementById('ft-search');
+  if(document.activeElement===v1Etat&&v2Etat) v2Etat.value=v1Etat.value;
+  if(document.activeElement===v2Etat&&v1Etat) v1Etat.value=v2Etat.value;
+  if(document.activeElement===v1Forc&&v2Forc) v2Forc.value=v1Forc.value;
+  if(document.activeElement===v2Forc&&v1Forc) v1Forc.value=v2Forc.value;
+  if(document.activeElement===v1Arh&&v2Arh) v2Arh.value=v1Arh.value;
+  if(document.activeElement===v2Arh&&v1Arh) v1Arh.value=v2Arh.value;
+
+  const etat=(v1Etat||v2Etat)?.value||'';
+  const periode=document.getElementById('f-periode')?.value||'';
+  const forc=(v1Forc||v2Forc)?.value||'';
+  const arh=(v1Arh||v2Arh)?.value||'';
+  const search=((v1S||v2S)?.value||'').toLowerCase();
+
+  filtered=joined.filter(d=>{
+    if(etat&&d.etat!==etat) return false;
+    if(periode&&d.dateCreation){
+      const dp=d.dateCreation.getFullYear()+'-'+String(d.dateCreation.getMonth()+1).padStart(2,'0');
       if(dp!==periode) return false;
     }
-    if(activite && d.dernActivite!==activite) return false;
-    if(arh && d.arbTraitant!==arh) return false;
-    if(search && !d.numDemande.toLowerCase().includes(search) && !d.description.toLowerCase().includes(search)) return false;
-    if(currentTab && d.etat!==currentTab) return false;
+    if(forc&&d.forc.status!==forc) return false;
+    if(arh&&d.arbTraitant!==arh) return false;
+    if(search&&!d.numDemande.toLowerCase().includes(search)&&!d.description.toLowerCase().includes(search)) return false;
+    if(currentTab&&d.forc.status!==currentTab) return false;
     return true;
   });
 
@@ -822,88 +853,95 @@ function applyFilters(){
 }
 
 function resetFilters(){
-  ['f-etat','f-periode','f-activite','f-arh'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
-  const s=document.getElementById('f-search'); if(s) s.value='';
-  currentTab=''; document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('on',i===0));
+  ['f-etat','ft-etat','f-periode','f-forc','ft-forc','f-arh','ft-arh'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['f-search','ft-search'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  currentTab='';
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('on',i===0||i===6));
   applyFilters();
 }
 
-function setTab(el, tab){
+function setTab(el,tab){
   currentTab=tab;
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('#view-table .tab').forEach(t=>t.classList.remove('on'));
   el.classList.add('on');
   currentPage=1;
   applyFilters();
 }
 
-// =====================================================
+// ================================================================
 // UPDATE ALL
-// =====================================================
+// ================================================================
 function updateAll(){
   updateKPIs();
   updateTopbar();
   updateTabCounts();
-  renderTable();
-  if(document.getElementById('view-dashboard').classList.contains('on')){
-    drawEvolChart(); drawEtatChart(); drawTopActivites(); drawAnciennete(); drawTopARH();
-  }
-  if(document.getElementById('view-activites').classList.contains('on')) drawActivitesView();
-  if(document.getElementById('view-etats').classList.contains('on')) drawEtatsView();
+  const curView=document.querySelector('.view.on')?.id?.replace('view-','');
+  if(curView==='dashboard'){drawDashboard();}
+  else if(curView==='table'){renderTable();}
+  else if(curView==='alertes'){renderAlertes();}
+  else if(curView==='manager'){renderManager();}
+  else if(curView==='nettoyage'){renderNettoyage();}
+  else if(curView==='activites'){drawActivitesView();}
 }
 
 function updateTopbar(){
-  document.getElementById('topbar-sub').textContent = `${filtered.length} dossiers affichés · Rejet CPAM`;
+  const alive=filtered.filter(d=>d.forc.status!=='dead').length;
+  document.getElementById('topbar-sub').textContent=`${alive} dossiers actifs · ${filtered.filter(d=>d.forc.status==='dead').length} forclos · Délai forclusion : 823j`;
 }
 
 function updateTabCounts(){
-  document.getElementById('tab-cnt-all').textContent = joined.length;
-  document.getElementById('tab-cnt-encours').textContent = joined.filter(d=>d.etat==='En cours').length;
-  document.getElementById('tab-cnt-attente').textContent = joined.filter(d=>d.etat==='En attente').length;
+  const counts={};
+  joined.forEach(d=>counts[d.forc.status]=(counts[d.forc.status]||0)+1);
+  counts['']= joined.length;
+  document.getElementById('tc-all').textContent=joined.length;
+  document.getElementById('tc-crit').textContent=counts.crit||0;
+  document.getElementById('tc-urg').textContent=counts.urg||0;
+  document.getElementById('tc-warn').textContent=counts.warn||0;
+  document.getElementById('tc-ok').textContent=counts.ok||0;
+  document.getElementById('tc-dead').textContent=counts.dead||0;
 }
 
 function updateFileBadge(){
-  const n = (f1Loaded?1:0)+(f2Loaded?1:0);
-  const b=document.getElementById('nb-files');
-  b.textContent=n+'/2';
-  b.className='side-badge '+(n===2?'ok':'warn');
+  const n=(f1Loaded?1:0)+(f2Loaded?1:0);
+  const b=document.getElementById('nb-files');b.textContent=n+'/2';b.className='side-badge '+(n===2?'ok':'warn');
 }
 
-// =====================================================
+// ================================================================
 // KPIs
-// =====================================================
+// ================================================================
 function updateKPIs(){
-  const total=filtered.length;
-  const encours=filtered.filter(d=>d.etat==='En cours').length;
-  const attente=filtered.filter(d=>d.etat==='En attente').length;
-  const today=new Date(); today.setHours(0,0,0,0);
-  const inactif=filtered.filter(d=>{
-    if(!d.dateDernActivite) return true;
-    const diff=Math.round((today-d.dateDernActivite)/86400000);
-    return diff>30;
-  }).length;
-
-  // avg duration (dateDebut → dateFin of last activity)
-  const durs=filtered.filter(d=>d.activites.length>0).map(d=>{
-    const first=d.activites[d.activites.length-1];
-    const last=d.activites[0];
-    if(!first.dateDebut||!last.dateFin) return null;
-    return Math.round((last.dateFin-first.dateDebut)/86400000);
-  }).filter(v=>v!==null&&v>=0);
-  const avgDur=durs.length ? Math.round(durs.reduce((a,b)=>a+b,0)/durs.length) : null;
-
-  document.getElementById('k-total').textContent=total;
-  document.getElementById('k-total-sub').textContent=`${total} demandes Rejet CPAM`;
-  document.getElementById('k-encours').textContent=encours;
-  document.getElementById('k-encours-sub').textContent=total?Math.round(encours/total*100)+'% du total':'—';
-  document.getElementById('k-attente').textContent=attente;
-  document.getElementById('k-inactif').textContent=inactif;
-  document.getElementById('k-duree').textContent=avgDur!==null?avgDur+'j':'—';
+  const src=joined; // KPIs always on full dataset
+  const counts={total:0,crit:0,urg:0,warn:0,ok:0,dead:0};
+  src.forEach(d=>{
+    counts.total++;
+    counts[d.forc.status]=(counts[d.forc.status]||0)+1;
+  });
+  document.getElementById('k-total').textContent=counts.total-(counts.dead||0);
+  document.getElementById('k-total-sub').textContent=`${counts.total} dont ${counts.dead||0} forclos`;
+  document.getElementById('k-crit').textContent=counts.crit||0;
+  document.getElementById('k-urg').textContent=counts.urg||0;
+  document.getElementById('k-warn').textContent=counts.warn||0;
+  document.getElementById('k-ok').textContent=counts.ok||0;
+  document.getElementById('k-dead').textContent=counts.dead||0;
+  document.getElementById('nb-alertes').textContent=(counts.crit||0)+(counts.dead||0);
 }
 
-// =====================================================
-// CHARTS
-// =====================================================
-function dc(id){ if(charts[id]){ charts[id].destroy(); delete charts[id]; } }
+// ================================================================
+// DASHBOARD CHARTS
+// ================================================================
+function dc(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+
+function drawDashboard(){
+  // Banners
+  const crit=joined.filter(d=>d.forc.status==='crit').length;
+  const urg=joined.filter(d=>d.forc.status==='urg').length;
+  let banners='';
+  if(crit>0) banners+=`<div class="forc-banner crit"><div class="forc-icon">🚨</div><div class="forc-banner-txt"><div class="forc-banner-title">${crit} dossier${crit>1?'s':''} en forclusion critique — moins de 30 jours restants</div><div class="forc-banner-sub">Action immédiate requise. Ces dossiers ne pourront plus être récupérés sous 30 jours.</div></div><button class="btn btn-red" onclick="nav(document.querySelectorAll('.nav-it')[6],'alertes')">Voir les alertes →</button></div>`;
+  if(urg>0) banners+=`<div class="forc-banner urg"><div class="forc-icon">⚠️</div><div class="forc-banner-txt"><div class="forc-banner-title">${urg} dossier${urg>1?'s':''} à traiter dans les 6 prochains mois</div><div class="forc-banner-sub">À planifier en priorité pour éviter la perte de remboursement.</div></div><button class="btn btn-amb" onclick="nav(document.querySelectorAll('.nav-it')[7],'manager')">Rapport manager →</button></div>`;
+  document.getElementById('dash-banners').innerHTML=banners;
+
+  drawEvolChart(); drawEtatChart(); drawForcChart(); drawAnciennete();
+}
 
 function drawEvolChart(){
   dc('evol');
@@ -911,20 +949,20 @@ function drawEvolChart(){
   filtered.forEach(d=>{
     if(!d.dateCreation) return;
     const k=d.dateCreation.getFullYear()+'-'+String(d.dateCreation.getMonth()+1).padStart(2,'0');
-    months[k]=(months[k]||0)+1;
+    if(!months[k]) months[k]={crit:0,urg:0,warn:0,ok:0,dead:0};
+    months[k][d.forc.status]=(months[k][d.forc.status]||0)+1;
   });
   const labels=Object.keys(months).sort();
-  const data=labels.map(k=>months[k]);
+  const colors={crit:'#B91C1C',urg:'#C2410C',warn:'#CA8A04',ok:'#15803D',dead:'#9CA3AF'};
   charts['evol']=new Chart(document.getElementById('ch-evol').getContext('2d'),{
     type:'bar',
-    data:{labels:labels,datasets:[{
-      label:'Demandes créées',data,
-      backgroundColor:'rgba(255,121,0,0.18)',borderColor:'#FF7900',borderWidth:2,
-      borderRadius:6,borderSkipped:false
-    }]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false}},
-      scales:{y:{ticks:{font:{size:11}},grid:{color:'rgba(0,0,0,0.04)'}},x:{ticks:{font:{size:11}},grid:{display:false}}}
+    data:{labels,datasets:['ok','warn','urg','crit','dead'].map(s=>({
+      label:FORC_LABELS[s],
+      data:labels.map(k=>months[k][s]||0),
+      backgroundColor:colors[s]+'90',borderColor:colors[s],borderWidth:1.5,borderRadius:4,borderSkipped:false,stack:'s'
+    }))},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:10,usePointStyle:true}}},
+      scales:{y:{stacked:true,ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}},x:{stacked:true,ticks:{font:{size:10}},grid:{display:false}}}
     }
   });
 }
@@ -932,87 +970,62 @@ function drawEvolChart(){
 function drawEtatChart(){
   dc('etat');
   const counts={};
-  filtered.forEach(d=>{ counts[d.etat]=(counts[d.etat]||0)+1; });
+  filtered.forEach(d=>{counts[d.etat]=(counts[d.etat]||0)+1;});
   const labels=Object.keys(counts);
   const data=labels.map(k=>counts[k]);
-  const colors={'En cours':'#D97706','En attente':'#D73E3E','Clôturé':'#16A34A','Annulé':'#6B7280'};
-  const bg=labels.map(l=>colors[l]||'#2563EB');
+  const colorMap={'En cours':'#D97706','En attente':'#D73E3E','Clôturé':'#16A34A','Annulé':'#6B7280'};
+  const bg=labels.map(l=>colorMap[l]||'#2563EB');
   charts['etat']=new Chart(document.getElementById('ch-etat').getContext('2d'),{
     type:'doughnut',
     data:{labels,datasets:[{data,backgroundColor:bg,borderWidth:3,borderColor:'#fff',hoverOffset:6}]},
     options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false}}}
   });
-  document.getElementById('etat-legend').innerHTML=labels.map((l,i)=>`
-    <span style="display:flex;align-items:center;gap:4px">
-      <span style="width:8px;height:8px;border-radius:2px;background:${bg[i]}"></span>${l} (${data[i]})
-    </span>`).join('');
+  document.getElementById('etat-legend').innerHTML=labels.map((l,i)=>`<span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:${bg[i]}"></span>${l} (${data[i]})</span>`).join('');
 }
 
-function drawTopActivites(){
-  const acts={};
-  filtered.forEach(d=>d.activites.forEach(a=>{ if(a.libActivite) acts[a.libActivite]=(acts[a.libActivite]||0)+1; }));
-  const sorted=Object.entries(acts).sort((a,b)=>b[1]-a[1]).slice(0,6);
-  const max=sorted[0]?.[1]||1;
-  const actColors=['#2563EB','#7C3AED','#D97706','#D73E3E','#16A34A','#FF7900'];
-  document.getElementById('top-activites').innerHTML=sorted.map(([lbl,cnt],i)=>`
-    <div class="stat-row">
-      <div class="stat-row-lbl" title="${lbl}">${lbl.replace(/^\d+:/,'')}</div>
-      <div class="stat-row-bar"><div class="pbar"><div class="pfill" style="width:${Math.round(cnt/max*100)}%;background:${actColors[i%actColors.length]}"></div></div></div>
-      <div class="stat-row-val">${cnt}</div>
-    </div>`).join('')||'<div style="color:var(--txt3);font-size:12px">Aucune activité</div>';
+function drawForcChart(){
+  dc('forc');
+  const statuses=['crit','urg','warn','ok'];
+  const labels=['Critique < 30j','Urgent < 6 mois','Vigilance 6–12 mois','OK > 12 mois'];
+  const colors=['#B91C1C','#C2410C','#CA8A04','#15803D'];
+  const data=statuses.map(s=>filtered.filter(d=>d.forc.status===s).length);
+  charts['forc']=new Chart(document.getElementById('ch-forc').getContext('2d'),{
+    type:'bar',
+    data:{labels,datasets:[{data,backgroundColor:colors.map(c=>c+'25'),borderColor:colors,borderWidth:2,borderRadius:8,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.parsed.y} dossier${ctx.parsed.y>1?'s':''}`}}},
+      scales:{y:{ticks:{font:{size:11}},grid:{color:'rgba(0,0,0,0.04)'}},x:{ticks:{font:{size:11}},grid:{display:false}}}
+    }
+  });
 }
 
 function drawAnciennete(){
-  const today=new Date(); today.setHours(0,0,0,0);
-  const buckets=[
-    {lbl:'< 30 j',min:0,max:29,c:'#16A34A'},
-    {lbl:'30–90 j',min:30,max:90,c:'#D97706'},
-    {lbl:'91–180 j',min:91,max:180,c:'#D73E3E'},
-    {lbl:'> 180 j',min:181,max:9999,c:'#7F1D1D'},
-  ];
-  const counts=buckets.map(b=>filtered.filter(d=>d.etat!=='Clôturé'&&d.age!==null&&d.age>=b.min&&d.age<=b.max).length);
-  const max=Math.max(...counts,1);
-  document.getElementById('anciennete').innerHTML=buckets.map((b,i)=>`
+  const today=new Date();today.setHours(0,0,0,0);
+  const b=[{lbl:'< 30j',min:0,max:29,c:'#16A34A'},{lbl:'30–180j',min:30,max:180,c:'#D97706'},{lbl:'181–365j',min:181,max:365,c:'#C2410C'},{lbl:'> 1 an',min:366,max:9999,c:'#B91C1C'}];
+  const cnt=b.map(bk=>filtered.filter(d=>d.forc.status!=='dead'&&d.age!==null&&d.age>=bk.min&&d.age<=bk.max).length);
+  const max=Math.max(...cnt,1);
+  document.getElementById('anciennete').innerHTML=b.map((bk,i)=>`
     <div class="stat-row">
-      <div class="stat-row-lbl">${b.lbl}</div>
-      <div class="stat-row-bar"><div class="pbar"><div class="pfill" style="width:${Math.round(counts[i]/max*100)}%;background:${b.c}"></div></div></div>
-      <div class="stat-row-val">${counts[i]}</div>
+      <div class="stat-row-lbl">${bk.lbl}</div>
+      <div class="stat-row-bar"><div class="pbar"><div class="pfill" style="width:${Math.round(cnt[i]/max*100)}%;background:${bk.c}"></div></div></div>
+      <div class="stat-row-val">${cnt[i]}</div>
     </div>`).join('');
 }
 
-function drawTopARH(){
-  const arhs={};
-  filtered.forEach(d=>{ if(d.arbTraitant) arhs[d.arbTraitant]=(arhs[d.arbTraitant]||0)+1; });
-  const sorted=Object.entries(arhs).sort((a,b)=>b[1]-a[1]).slice(0,6);
-  const max=sorted[0]?.[1]||1;
-  document.getElementById('top-arh').innerHTML=sorted.map(([nom,cnt],i)=>{
-    const ini=nom.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
-    const bg=['#FF7900','#2563EB','#D97706','#7C3AED','#16A34A','#D73E3E'][i%6];
-    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:9px">
-      <div style="width:26px;height:26px;border-radius:50%;background:${bg};color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">${ini}</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nom}</div>
-        <div class="pbar" style="margin-top:3px"><div class="pfill" style="width:${Math.round(cnt/max*100)}%;background:${bg}"></div></div>
-      </div>
-      <div style="font-size:11px;font-family:'DM Mono',monospace;font-weight:500;flex-shrink:0">${cnt}</div>
-    </div>`;
-  }).join('')||'<div style="color:var(--txt3);font-size:12px">Aucun ARH</div>';
-}
-
-// =====================================================
+// ================================================================
 // TABLE
-// =====================================================
-function getActClass(lib){
-  if(!lib) return 'b-gray';
-  const n=parseInt(lib);
-  if(n===1) return 'act-1';if(n===2) return 'act-2';if(n===3) return 'act-3';
-  if(n===4) return 'act-4';if(n===5) return 'act-5';if(n===6) return 'act-6';
-  return 'b-gray';
-}
-function getEtatClass(e){
-  return {
-    'En cours':'b-a','En attente':'b-r','Clôturé':'b-g','Annulé':'b-gray'
-  }[e]||'b-gray';
+// ================================================================
+function getEtatClass(e){return {'En cours':'b-a','En attente':'b-r','Clôturé':'b-g','Annulé':'b-gray'}[e]||'b-gray';}
+function getActClass(lib){if(!lib)return 'b-gray';const n=parseInt(lib);return['','act-1','act-2','act-3','act-4','act-5','act-6'][n]||'b-gray';}
+
+function forcBarHTML(fi){
+  if(!fi||!fi.pct) return '';
+  const color=FORC_COLORS[fi.status]||'#9CA3AF';
+  const pct=fi.pct;
+  return `<div class="forc-bar-wrap">
+    <div class="forc-bar-bg"><div class="forc-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+    <div class="forc-bar-pct" style="color:${color}">${pct}%</div>
+  </div>`;
 }
 
 function renderTable(){
@@ -1021,40 +1034,36 @@ function renderTable(){
     document.getElementById('t-count').textContent='0';
     return;
   }
-  sortCol = document.getElementById('t-sort')?.value||'date-desc';
+  const sort=document.getElementById('t-sort')?.value||'forc-asc';
   const data=[...filtered];
-  if(sortCol==='date-desc') data.sort((a,b)=>(b.dateCreation||0)-(a.dateCreation||0));
-  if(sortCol==='date-asc') data.sort((a,b)=>(a.dateCreation||0)-(b.dateCreation||0));
-  if(sortCol==='act-desc') data.sort((a,b)=>(b.dateDernActivite||0)-(a.dateDernActivite||0));
-  if(sortCol==='age-desc') data.sort((a,b)=>(b.age||0)-(a.age||0));
+  const forder={crit:0,urg:1,warn:2,ok:3,dead:4,unknown:5};
+  if(sort==='forc-asc') data.sort((a,b)=>{const d=forder[a.forc.status]-forder[b.forc.status];if(d!==0)return d;return (a.forc.jRestants||9999)-(b.forc.jRestants||9999);});
+  else if(sort==='date-desc') data.sort((a,b)=>(b.dateCreation||0)-(a.dateCreation||0));
+  else if(sort==='date-asc') data.sort((a,b)=>(a.dateCreation||0)-(b.dateCreation||0));
+  else if(sort==='age-desc') data.sort((a,b)=>(b.age||0)-(a.age||0));
 
   const total=data.length;
   const start=(currentPage-1)*PAGE;
   const page=data.slice(start,start+PAGE);
-
   document.getElementById('t-count').textContent=total;
   document.getElementById('p-info').textContent=`${start+1}–${Math.min(start+PAGE,total)} sur ${total}`;
 
-  const today=new Date(); today.setHours(0,0,0,0);
   document.getElementById('t-body').innerHTML=page.map(d=>{
-    const alertAge = d.age!==null && d.age>90 && d.etat!=='Clôturé';
-    const alertInact = !d.dateDernActivite || Math.round((today-d.dateDernActivite)/86400000)>30;
-    return `<tr onclick="openModal('${d.numDemande}')" style="${alertAge||alertInact?'background:rgba(215,62,62,0.03)':''}">
+    const rowClass=d.forc.status==='crit'?'row-crit':d.forc.status==='dead'?'row-dead':d.forc.status==='urg'?'row-urg':'';
+    return `<tr class="${rowClass}" onclick="openModal('${d.numDemande}')">
       <td><span class="cell-id">${d.numDemande}</span></td>
       <td style="color:var(--txt2);font-size:11px">${d.type}</td>
       <td><span class="badge ${getEtatClass(d.etat)}">${d.etat||'—'}</span></td>
       <td class="mono" style="font-size:11px">${fmtDate(d.dateCreation)}</td>
-      <td><span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:${d.age>90?'var(--red)':d.age>30?'var(--amb)':'var(--txt2)'}">${d.age!==null?d.age+'j':'—'}</span></td>
-      <td><span class="badge ${getActClass(d.dernActivite)}" title="${d.dernActivite}">${d.dernActivite?d.dernActivite.replace(/^\d+:/,'').trim().slice(0,32):'—'}</span></td>
-      <td class="mono" style="font-size:11px">${fmtDate(d.dateDernActivite)}</td>
-      <td style="font-size:12px">${d.arbTraitant||'—'}</td>
-      <td style="font-size:11px;color:var(--txt2)">${d.equipe||'—'}</td>
-      <td><span style="font-family:'DM Mono',monospace;font-size:11px;background:var(--bg2);padding:2px 6px;border-radius:4px">${d.nbActivites}</span></td>
-      <td>
-        <button class="btn btn-ghost" style="padding:4px 8px;font-size:11px" onclick="event.stopPropagation();openModal('${d.numDemande}')">
-          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        </button>
-      </td>
+      <td><span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:${d.age>365?'var(--forc-crit)':d.age>180?'var(--forc-urg)':'var(--txt2)'}">${d.age!==null?d.age+'j':'—'}</span></td>
+      <td class="mono" style="font-size:11px;font-weight:500;color:${d.forc.status==='dead'?'var(--forc-crit)':d.forc.status==='crit'?'var(--forc-crit)':'var(--txt)'}">${fmtDate(d.forc.dateLimit)}</td>
+      <td>${forcPill(d.forc)}</td>
+      <td>${forcBarHTML(d.forc)}</td>
+      <td><span class="badge ${getActClass(d.dernActivite)}" style="font-size:10px" title="${d.dernActivite}">${d.dernActivite?d.dernActivite.replace(/^\d+:/,'').trim().slice(0,28):'—'}</span></td>
+      <td>${arbCell(d)}</td>
+      <td><button class="btn btn-ghost" style="padding:3px 7px;font-size:11px" onclick="event.stopPropagation();openModal('${d.numDemande}')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button></td>
     </tr>`;
   }).join('');
 
@@ -1064,75 +1073,202 @@ function renderTable(){
 function renderPagi(total){
   const pages=Math.ceil(total/PAGE);
   const c=document.getElementById('p-btns');
-  let h=`<button class="pbtn" onclick="gotoPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
-  const start=Math.max(1,currentPage-2),end=Math.min(pages,currentPage+2);
-  if(start>1) h+=`<button class="pbtn" onclick="gotoPage(1)">1</button><span style="padding:0 4px;color:var(--txt3)">…</span>`;
-  for(let p=start;p<=end;p++) h+=`<button class="pbtn ${p===currentPage?'on':''}" onclick="gotoPage(${p})">${p}</button>`;
-  if(end<pages) h+=`<span style="padding:0 4px;color:var(--txt3)">…</span><button class="pbtn" onclick="gotoPage(${pages})">${pages}</button>`;
-  h+=`<button class="pbtn" onclick="gotoPage(${currentPage+1})" ${currentPage===pages?'disabled':''}>›</button>`;
+  let h=`<button class="pbtn" onclick="gp(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+  const s=Math.max(1,currentPage-2),e=Math.min(pages,currentPage+2);
+  if(s>1)h+=`<button class="pbtn" onclick="gp(1)">1</button><span style="padding:0 3px;color:var(--txt3)">…</span>`;
+  for(let p=s;p<=e;p++)h+=`<button class="pbtn ${p===currentPage?'on':''}" onclick="gp(${p})">${p}</button>`;
+  if(e<pages)h+=`<span style="padding:0 3px;color:var(--txt3)">…</span><button class="pbtn" onclick="gp(${pages})">${pages}</button>`;
+  h+=`<button class="pbtn" onclick="gp(${currentPage+1})" ${currentPage===pages?'disabled':''}>›</button>`;
   c.innerHTML=h;
 }
-function gotoPage(p){ const total=filtered.length; const pages=Math.ceil(total/PAGE); if(p<1||p>pages) return; currentPage=p; renderTable(); }
+function gp(p){const t=filtered.length;const pg=Math.ceil(t/PAGE);if(p<1||p>pg)return;currentPage=p;renderTable();}
 
-// =====================================================
-// MODAL
-// =====================================================
-function openModal(num){
-  const d=joined.find(r=>r.numDemande===num);
-  if(!d) return;
-  document.getElementById('m-title').textContent='Dossier '+d.numDemande;
-  document.getElementById('m-sub').innerHTML=`<span class="badge ${getEtatClass(d.etat)}">${d.etat||'—'}</span> · ${d.type} · ${d.libActe}`;
+// ================================================================
+// ALERTES VIEW
+// ================================================================
+function renderAlertes(){
+  const sections=[
+    {key:'crit',label:'🔴 Critique — Forclusion dans moins de 30 jours',cls:'crit',desc:'Action immédiate requise. Ces dossiers seront perdus dans moins d\'un mois.'},
+    {key:'urg',label:'🟠 Urgent — Forclusion dans moins de 6 mois',cls:'urg',desc:'À traiter en priorité dans les prochaines semaines.'},
+    {key:'warn',label:'🟡 Vigilance — Forclusion dans 6 à 12 mois',cls:'warn',desc:'À planifier. Surveillez l\'avancement de ces dossiers.'},
+    {key:'dead',label:'⚫ Forclos — Délai dépassé',cls:'dead',desc:'Ces dossiers ont dépassé le délai légal de 823 jours. Récupération impossible.'},
+  ];
 
-  // Build activities HTML
-  const actColors=['#2563EB','#7C3AED','#D97706','#D73E3E','#16A34A','#FF7900'];
-  const actsHtml = d.activites.length ? d.activites.map((a,i)=>{
-    const dur = a.dateDebut&&a.dateFin ? Math.round((a.dateFin-a.dateDebut)/86400000) : null;
-    return `<div class="act-item">
-      <div class="act-num" style="background:${actColors[i%actColors.length]}20;color:${actColors[i%actColors.length]}">${i+1}</div>
-      <div class="act-body">
-        <div class="act-name">${a.libActivite||'—'}</div>
-        <div class="act-meta">
-          <span>📅 Début : ${fmtDate(a.dateDebut)} ${a.heureDebut}</span>
-          <span>🏁 Fin : ${fmtDate(a.dateFin)} ${a.heureFin}</span>
-          ${dur!==null?`<span>⏱ ${dur}j</span>`:''}
+  let html='';
+  sections.forEach(sec=>{
+    const items=joined.filter(d=>d.forc.status===sec.key).sort((a,b)=>(a.forc.jRestants||9999)-(b.forc.jRestants||9999));
+    if(!items.length) return;
+    html+=`<div class="alert-section">
+      <div class="alert-section-head ${sec.cls}">
+        <div>
+          <div style="font-size:13px;font-weight:600">${sec.label} — ${items.length} dossier${items.length>1?'s':''}</div>
+          <div style="font-size:11px;opacity:.7;margin-top:2px">${sec.desc}</div>
         </div>
-        <div class="act-meta" style="margin-top:4px">
-          <span>👤 ${a.prenomARH} ${a.nomARH} <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--txt3)">${a.cuid}</span></span>
-          <span>🏢 ${a.equipe}</span>
-        </div>
+        <button class="btn btn-ghost" style="font-size:11px" onclick="exportCSVSubset(${JSON.stringify(items.map(d=>d.numDemande))})">Exporter</button>
+      </div>
+      <div class="tcard">
+        <table>
+          <thead><tr><th>Num demande</th><th>État</th><th>Date création</th><th>Âge (j)</th><th>Date limite</th><th>Délai restant</th><th>Avancement</th><th>ARH traitant</th><th>Équipe</th><th></th></tr></thead>
+          <tbody>${items.map(d=>`<tr class="row-${sec.key}" onclick="openModal('${d.numDemande}')">
+            <td><span class="cell-id">${d.numDemande}</span></td>
+            <td><span class="badge ${getEtatClass(d.etat)}">${d.etat||'—'}</span></td>
+            <td class="mono" style="font-size:11px">${fmtDate(d.dateCreation)}</td>
+            <td class="mono" style="font-size:11px">${d.age!==null?d.age+'j':'—'}</td>
+            <td class="mono" style="font-size:11px;font-weight:600;color:var(--forc-${sec.key})">${fmtDate(d.forc.dateLimit)}</td>
+            <td>${forcPill(d.forc)}</td>
+            <td>${forcBarHTML(d.forc)}</td>
+            <td>${arbCell(d)}</td>
+            <td style="font-size:11px;color:var(--txt2)">${d.equipe||'—'}</td>
+            <td><button class="btn btn-ghost" style="padding:3px 7px" onclick="event.stopPropagation();openModal('${d.numDemande}')">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button></td>
+          </tr>`).join('')}</tbody>
+        </table>
       </div>
     </div>`;
-  }).join('') : '<div style="color:var(--txt3);font-size:12px;padding:8px 0">Aucune activité enregistrée</div>';
-
-  document.getElementById('m-body').innerHTML=`
-    <div class="msec">
-      <div class="msec-title">Informations demande</div>
-      <div class="mgrid">
-        <div class="mfield"><label>Num demande</label><div class="v mono">${d.numDemande}</div></div>
-        <div class="mfield"><label>Type demande</label><div class="v">${d.type}</div></div>
-        <div class="mfield"><label>État</label><div class="v"><span class="badge ${getEtatClass(d.etat)}">${d.etat||'—'}</span></div></div>
-        <div class="mfield"><label>Date création</label><div class="v mono">${fmtDate(d.dateCreation)}</div></div>
-        <div class="mfield"><label>Lib acte</label><div class="v">${d.libActe}</div></div>
-        <div class="mfield"><label>Ancienneté</label><div class="v" style="color:${d.age>90?'var(--red)':d.age>30?'var(--amb)':'var(--txt)'}">${d.age!==null?d.age+' jours':'—'}</div></div>
-      </div>
-      ${d.description?`<div style="margin-top:12px;padding:10px 12px;background:var(--bg2);border-radius:8px;font-size:12px;color:var(--txt2);line-height:1.6">${d.description}</div>`:''}
-    </div>
-    <div class="msec">
-      <div class="msec-title">Historique des activités (${d.nbActivites})</div>
-      <div class="actl">${actsHtml}</div>
-    </div>
-  `;
-  document.getElementById('moverlay').classList.add('open');
+  });
+  document.getElementById('alertes-content').innerHTML=html||'<div style="text-align:center;padding:60px;color:var(--txt3)">Aucune alerte — importez vos données</div>';
 }
-function closeMod(e){ if(e.target===document.getElementById('moverlay')) document.getElementById('moverlay').classList.remove('open'); }
 
-// =====================================================
+// ================================================================
+// MANAGER VIEW (< 6 mois)
+// ================================================================
+function renderManager(){
+  const items=joined.filter(d=>d.forc.status==='crit'||d.forc.status==='urg').sort((a,b)=>(a.forc.jRestants||9999)-(b.forc.jRestants||9999));
+  if(!items.length){document.getElementById('manager-content').innerHTML='<div style="text-align:center;padding:60px;color:var(--txt3)">Aucun dossier à traiter dans les 6 prochains mois.</div>';return;}
+
+  // Group by ARH
+  const byARH={};
+  items.forEach(d=>{
+    const k=d.arbTraitant||'Non assigné';
+    if(!byARH[k]) byARH[k]={equipe:d.equipe,items:[]};
+    byARH[k].items.push(d);
+  });
+
+  const today=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  let html=`<div style="background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:20px 24px;margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div>
+        <div style="font-size:11px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.6px">Rapport généré le</div>
+        <div style="font-size:16px;font-weight:600;margin-top:2px">${today}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:11px;color:var(--txt3)">Dossiers concernés</div>
+        <div style="font-size:24px;font-weight:600;font-family:'DM Mono',monospace;color:var(--forc-urg)">${items.length}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+      <div style="background:var(--forc-crit-bg);border:1px solid var(--forc-crit-bdr);border-radius:8px;padding:10px 12px;text-align:center">
+        <div style="font-size:20px;font-weight:600;font-family:'DM Mono',monospace;color:var(--forc-crit)">${items.filter(d=>d.forc.status==='crit').length}</div>
+        <div style="font-size:11px;color:var(--forc-crit);margin-top:2px">Critiques &lt; 30j</div>
+      </div>
+      <div style="background:var(--forc-urg-bg);border:1px solid var(--forc-urg-bdr);border-radius:8px;padding:10px 12px;text-align:center">
+        <div style="font-size:20px;font-weight:600;font-family:'DM Mono',monospace;color:var(--forc-urg)">${items.filter(d=>d.forc.status==='urg').length}</div>
+        <div style="font-size:11px;color:var(--forc-urg);margin-top:2px">Urgents &lt; 6 mois</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--bdr);border-radius:8px;padding:10px 12px;text-align:center">
+        <div style="font-size:20px;font-weight:600;font-family:'DM Mono',monospace;color:var(--txt)">${Object.keys(byARH).length}</div>
+        <div style="font-size:11px;color:var(--txt2);margin-top:2px">ARH concernés</div>
+      </div>
+    </div>
+  </div>`;
+
+  Object.entries(byARH).forEach(([arh,{equipe,items:aitems}])=>{
+    html+=`<div style="background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);margin-bottom:12px;overflow:hidden">
+      <div style="padding:12px 16px;background:var(--sur2);border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:30px;height:30px;border-radius:50%;background:var(--or-bg);color:var(--or);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">${arh.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2)}</div>
+          <div>
+            <div style="font-size:13px;font-weight:600">${aitems[0]?.arbNom||arh}</div>
+            <div style="font-size:12px;color:var(--txt2)">${aitems[0]?.arbPrenom||''}</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
+              ${aitems[0]?.arbCUID?`<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--txt3)">${aitems[0].arbCUID}</span>`:''}
+              <span style="font-size:11px;color:var(--txt2)">${equipe}</span>
+            </div>
+          </div>
+        </div>
+        <span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:500;background:var(--or-bg);color:var(--or);padding:3px 8px;border-radius:6px">${aitems.length} dossier${aitems.length>1?'s':''}</span>
+      </div>
+      <table style="width:100%">
+        <thead><tr>
+          <th style="padding:8px 12px;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;background:var(--sur2);border-bottom:1px solid var(--bdr)">Num demande</th>
+          <th style="padding:8px 12px;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;background:var(--sur2);border-bottom:1px solid var(--bdr)">État</th>
+          <th style="padding:8px 12px;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;background:var(--sur2);border-bottom:1px solid var(--bdr)">Date création</th>
+          <th style="padding:8px 12px;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;background:var(--sur2);border-bottom:1px solid var(--bdr)">Date limite forclusion</th>
+          <th style="padding:8px 12px;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;background:var(--sur2);border-bottom:1px solid var(--bdr)">Délai restant</th>
+          <th style="padding:8px 12px;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;background:var(--sur2);border-bottom:1px solid var(--bdr)">Avancement</th>
+          <th style="padding:8px 12px;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;background:var(--sur2);border-bottom:1px solid var(--bdr)">Description</th>
+        </tr></thead>
+        <tbody>${aitems.map(d=>`<tr style="border-bottom:1px solid var(--bdr);cursor:pointer" onclick="openModal('${d.numDemande}')">
+          <td style="padding:9px 12px"><span class="cell-id">${d.numDemande}</span></td>
+          <td style="padding:9px 12px"><span class="badge ${getEtatClass(d.etat)}">${d.etat}</span></td>
+          <td style="padding:9px 12px;font-family:'DM Mono',monospace;font-size:11px">${fmtDate(d.dateCreation)}</td>
+          <td style="padding:9px 12px;font-family:'DM Mono',monospace;font-size:11px;font-weight:600;color:var(--forc-${d.forc.status})">${fmtDate(d.forc.dateLimit)}</td>
+          <td style="padding:9px 12px">${forcPill(d.forc)}</td>
+          <td style="padding:9px 12px">${forcBarHTML(d.forc)}</td>
+          <td style="padding:9px 12px;font-size:11px;color:var(--txt2);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${d.description}">${d.description||'—'}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>`;
+  });
+  document.getElementById('manager-content').innerHTML=html;
+}
+
+function printManager(){window.print();}
+
+// ================================================================
+// NETTOYAGE VIEW
+// ================================================================
+function renderNettoyage(){
+  const items=joined.filter(d=>d.forc.status==='dead').sort((a,b)=>(a.forc.jRestants||0)-(b.forc.jRestants||0));
+  if(!items.length){document.getElementById('nettoyage-content').innerHTML='<div style="background:var(--grn-bg);border:1px solid rgba(22,163,74,0.3);border-radius:var(--rl);padding:24px;text-align:center;color:var(--grn)"><div style="font-size:32px;margin-bottom:8px">✅</div><div style="font-weight:600">Aucun dossier forclos</div><div style="font-size:12px;margin-top:4px;opacity:.7">Tous les dossiers sont encore dans le délai légal.</div></div>';return;}
+
+  const totalLost=items.length;
+  const avgOverdue=Math.round(items.reduce((s,d)=>s+Math.abs(d.forc.jRestants||0),0)/items.length);
+
+  document.getElementById('nettoyage-content').innerHTML=`
+    <div style="background:var(--forc-dead-bg);border:1.5px solid var(--forc-dead-bdr);border-radius:var(--rl);padding:18px 20px;margin-bottom:16px;display:flex;align-items:center;gap:16px">
+      <div style="font-size:36px">⚫</div>
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:600;color:var(--forc-dead)">${totalLost} dossier${totalLost>1?'s':''} forclos — récupération impossible</div>
+        <div style="font-size:12px;color:var(--txt2);margin-top:4px">Dépassement moyen : <strong>${avgOverdue} jours</strong> au-delà du délai légal. Ces dossiers représentent une perte financière définitive pour Orange.</div>
+      </div>
+      <button class="btn btn-ghost" onclick="exportCSV('dead')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 12l-4 4-4-4M12 8v8"/></svg>
+        Exporter pour archivage
+      </button>
+    </div>
+    <div class="tcard">
+      <table>
+        <thead><tr>
+          <th>Num demande</th><th>État</th><th>Date création</th><th>Âge total (j)</th>
+          <th>Date limite (dépassée)</th><th>Dépassement</th><th>Dernière activité</th><th>ARH</th><th></th>
+        </tr></thead>
+        <tbody>${items.map(d=>`<tr class="row-dead" onclick="openModal('${d.numDemande}')">
+          <td><span class="cell-id" style="text-decoration:line-through;opacity:.6">${d.numDemande}</span></td>
+          <td><span class="badge b-gray">${d.etat||'—'}</span></td>
+          <td class="mono" style="font-size:11px">${fmtDate(d.dateCreation)}</td>
+          <td class="mono" style="font-size:11px">${d.age!==null?d.age+'j':'—'}</td>
+          <td class="mono" style="font-size:11px;color:var(--forc-dead)">${fmtDate(d.forc.dateLimit)}</td>
+          <td><span class="fpill dead">+${Math.abs(d.forc.jRestants||0)}j</span></td>
+          <td style="font-size:11px;color:var(--txt2)">${d.dernActivite?d.dernActivite.replace(/^\d+:/,'').trim().slice(0,30):'—'}</td>
+          <td>${arbCell(d)}</td>
+          <td><button class="btn btn-ghost" style="padding:3px 7px" onclick="event.stopPropagation();openModal('${d.numDemande}')">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button></td>
+        </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+// ================================================================
 // ACTIVITES VIEW
-// =====================================================
+// ================================================================
 function drawActivitesView(){
   dc('act');
   const acts={};
-  filtered.forEach(d=>d.activites.forEach(a=>{ if(a.libActivite) acts[a.libActivite]=(acts[a.libActivite]||0)+1; }));
+  joined.forEach(d=>d.activites.forEach(a=>{if(a.libActivite)acts[a.libActivite]=(acts[a.libActivite]||0)+1;}));
   const sorted=Object.entries(acts).sort((a,b)=>b[1]-a[1]);
   const labels=sorted.map(([l])=>l.replace(/^\d+:/,'').trim().slice(0,40));
   const data=sorted.map(([,v])=>v);
@@ -1145,144 +1281,227 @@ function drawActivitesView(){
       scales:{x:{ticks:{font:{size:11}},grid:{color:'rgba(0,0,0,0.04)'}},y:{ticks:{font:{size:11}},grid:{display:false}}}
     }
   });
-
-  // ARH charge
   const arhData={};
-  filtered.forEach(d=>d.activites.forEach(a=>{
-    const k=`${a.prenomARH} ${a.nomARH}`.trim();
-    if(!k) return;
-    if(!arhData[k]) arhData[k]={total:0,equipe:a.equipe};
+  joined.forEach(d=>d.activites.forEach(a=>{
+    const k=`${a.prenomARH} ${a.nomARH}`.trim();if(!k)return;
+    if(!arhData[k])arhData[k]={total:0,equipe:a.equipe};
     arhData[k].total++;
   }));
   const sorted2=Object.entries(arhData).sort((a,b)=>b[1].total-a[1].total).slice(0,8);
   const maxA=sorted2[0]?.[1].total||1;
-  const iniColors=['#FF7900','#2563EB','#D97706','#7C3AED','#D73E3E','#16A34A','#0891B2','#059669'];
-  document.getElementById('arh-charge').innerHTML=sorted2.map(([nom,{total,equipe}],i)=>{
-    const ini=nom.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
-    return `<div class="arh-card" style="margin-bottom:8px">
-      <div class="arh-head">
-        <div class="arh-avatar" style="background:${iniColors[i%8]}20;color:${iniColors[i%8]}">${ini}</div>
-        <div>
-          <div class="arh-name">${nom}</div>
-          <div class="arh-sub">${equipe}</div>
-        </div>
-        <div style="margin-left:auto;font-family:'DM Mono',monospace;font-size:13px;font-weight:500">${total}</div>
+  document.getElementById('arh-charge').innerHTML=sorted2.map(([key,{total,equipe,nom,prenom,cuid:cu}],i)=>{
+    const ini=((nom[0]||'')+(prenom[0]||'')).toUpperCase();
+    const c=colors[i%8];
+    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div style="width:28px;height:28px;border-radius:50%;background:${c}20;color:${c};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">${ini}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nom}</div>
+        <div style="font-size:11px;color:var(--txt2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${prenom}</div>
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--txt3)">${cu||equipe}</div>
+        <div class="pbar" style="margin-top:3px"><div class="pfill" style="width:${Math.round(total/maxA*100)}%;background:${c}"></div></div>
       </div>
-      <div class="pbar"><div class="pfill" style="width:${Math.round(total/maxA*100)}%;background:${iniColors[i%8]}"></div></div>
+      <div style="font-size:11px;font-family:'DM Mono',monospace;font-weight:500;flex-shrink:0">${total}</div>
     </div>`;
-  }).join('');
+  }).join('')||'<div style="color:var(--txt3);font-size:12px">—</div>';
+}
 
-  // Matrice
-  const etatsByDem = {};
-  filtered.slice(0,50).forEach(d=>{
-    etatsByDem[d.numDemande]={etat:d.etat, acts:d.activites.map(a=>a.libActivite.replace(/^\d+:/,'').trim().slice(0,20))};
-  });
-  const allActTypes=[...new Set(filtered.flatMap(d=>d.activites.map(a=>a.libActivite.replace(/^\d+:/,'').trim().slice(0,20))))].slice(0,6);
-  if(allActTypes.length){
-    let tbl=`<table style="font-size:11px;min-width:500px"><thead><tr><th style="padding:6px 10px;background:var(--sur2);border-bottom:1px solid var(--bdr);text-align:left">Dossier</th><th style="padding:6px 10px;background:var(--sur2);border-bottom:1px solid var(--bdr)">État</th>`;
-    allActTypes.forEach(a=>{ tbl+=`<th style="padding:6px 10px;background:var(--sur2);border-bottom:1px solid var(--bdr);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a}</th>`; });
-    tbl+='</tr></thead><tbody>';
-    Object.entries(etatsByDem).forEach(([num,{etat,acts}])=>{
-      tbl+=`<tr style="border-bottom:1px solid var(--bdr)"><td style="padding:6px 10px;font-family:'DM Mono',monospace;color:var(--or);font-weight:500">${num}</td><td style="padding:6px 10px;text-align:center"><span class="badge ${getEtatClass(etat)}" style="font-size:10px">${etat||'—'}</span></td>`;
-      allActTypes.forEach(a=>{
-        const has=acts.includes(a);
-        tbl+=`<td style="padding:6px 10px;text-align:center;font-size:14px">${has?'<span style="color:var(--grn)">✓</span>':'<span style="color:var(--bdr2)">·</span>'}</td>`;
-      });
-      tbl+='</tr>';
-    });
-    tbl+='</tbody></table>';
-    document.getElementById('matrice-act').innerHTML=tbl;
+// ================================================================
+// MODAL
+// ================================================================
+function openModal(num){
+  const d=joined.find(r=>r.numDemande===num);if(!d) return;
+  const fi=d.forc;
+  const actColors=['#2563EB','#7C3AED','#D97706','#D73E3E','#16A34A','#FF7900'];
+  const statusIcons={dead:'⚫',crit:'🔴',urg:'🟠',warn:'🟡',ok:'🟢',unknown:'⚪'};
+
+  const gaugeColor=FORC_COLORS[fi.status]||'#9CA3AF';
+  let gaugeHtml='';
+  if(fi.dateLimit){
+    gaugeHtml=`<div class="forc-gauge">
+      <div class="forc-gauge-title" style="color:${gaugeColor}">${statusIcons[fi.status]} Forclusion — ${fi.jRestants!==null?(fi.jRestants>=0?fi.jRestants+' jours restants':'Forclos depuis '+Math.abs(fi.jRestants)+' jours'):'N/A'}</div>
+      <div class="forc-gauge-bar"><div class="forc-gauge-fill" style="width:${fi.pct}%;background:${gaugeColor}"></div></div>
+      <div class="forc-stats">
+        <span style="color:var(--txt3);font-size:11px">📅 Création : ${fmtDate(d.dateCreation)}</span>
+        <span style="font-size:11px;font-weight:600;color:${gaugeColor}">${fi.pct}% écoulé (${d.age}j / ${FORC_DAYS}j)</span>
+        <span style="color:${gaugeColor};font-size:11px;font-weight:600">⛔ Limite : ${fmtDate(fi.dateLimit)}</span>
+      </div>
+    </div>`;
   }
+
+  document.getElementById('m-title').textContent='Dossier '+d.numDemande;
+  document.getElementById('m-sub').innerHTML=`<span class="badge ${getEtatClass(d.etat)}">${d.etat||'—'}</span> · ${d.type} · ${d.libActe}`;
+  document.getElementById('m-body').innerHTML=`
+    ${gaugeHtml}
+    <div class="msec">
+      <div class="msec-title">Informations demande</div>
+      <div class="mgrid">
+        <div class="mfield"><label>Num demande</label><div class="v mono">${d.numDemande}</div></div>
+        <div class="mfield"><label>Type</label><div class="v">${d.type}</div></div>
+        <div class="mfield"><label>État</label><div class="v"><span class="badge ${getEtatClass(d.etat)}">${d.etat||'—'}</span></div></div>
+        <div class="mfield"><label>Date création</label><div class="v mono">${fmtDate(d.dateCreation)}</div></div>
+        <div class="mfield"><label>Date limite forclusion</label><div class="v mono" style="color:${gaugeColor};font-weight:600">${fmtDate(fi.dateLimit)}</div></div>
+        <div class="mfield"><label>Délai restant</label><div class="v">${forcPill(fi)}</div></div>
+      </div>
+      ${d.description?`<div style="margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:8px;font-size:12px;color:var(--txt2);line-height:1.6">${d.description}</div>`:''}
+    </div>
+    <div class="msec">
+      <div class="msec-title">Historique des activités (${d.nbActivites})</div>
+      ${d.activites.length?d.activites.map((a,i)=>{
+        const dur=a.dateDebut&&a.dateFin?Math.round((a.dateFin-a.dateDebut)/86400000):null;
+        return `<div class="act-item">
+          <div class="act-num" style="background:${actColors[i%6]}20;color:${actColors[i%6]}">${i+1}</div>
+          <div>
+            <div style="font-size:13px;font-weight:500">${a.libActivite||'—'}</div>
+            <div class="act-meta">
+              <span>📅 ${fmtDate(a.dateDebut)} ${a.heureDebut}</span>
+              <span>🏁 ${fmtDate(a.dateFin)} ${a.heureFin}</span>
+              ${dur!==null?`<span>⏱ ${dur}j</span>`:''}
+              <span>👤 ${a.prenomARH} ${a.nomARH} <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--txt3)">${a.cuid}</span></span>
+              <span>🏢 ${a.equipe}</span>
+            </div>
+          </div>
+        </div>`;
+      }).join(''):'<div style="color:var(--txt3);font-size:12px;padding:8px 0">Aucune activité enregistrée</div>'}
+    </div>`;
+  document.getElementById('moverlay').classList.add('open');
+}
+function closeMod(e){if(e.target===document.getElementById('moverlay'))document.getElementById('moverlay').classList.remove('open');}
+
+// ================================================================
+// EXPORT CSV
+// ================================================================
+function buildCSVRows(items){
+  const headers=['Num demande','Type','Etat','Lib acte','Date creation','Age (jours)','Date limite forclusion','Jours restants forclusion','Statut forclusion','Derniere activite','Date derniere activite','ARH traitant','Equipe','Nb activites','Description'];
+  const rows=items.map(d=>[
+    d.numDemande,d.type,d.etat,d.libActe,fmtDate(d.dateCreation),d.age!==null?d.age:'',
+    fmtDate(d.forc.dateLimit),d.forc.jRestants!==null?d.forc.jRestants:'',FORC_LABELS[d.forc.status]||'',
+    d.dernActivite,fmtDate(d.dateDernActivite),d.arbTraitant,d.equipe,d.nbActivites,d.description
+  ].map(v=>String(v||'').replace(/;/g,',')));
+  return [headers.join(';'),...rows.map(r=>r.join(';'))].join('\n');
 }
 
-// =====================================================
-// ETATS VIEW
-// =====================================================
-function drawEtatsView(){
-  dc('delai'); dc('chrono');
-
-  // Avg duration by act type
-  const durByAct={};
-  filtered.forEach(d=>d.activites.forEach(a=>{
-    if(!a.dateDebut||!a.dateFin) return;
-    const dur=Math.round((a.dateFin-a.dateDebut)/86400000);
-    if(dur<0||dur>365) return;
-    const k=a.libActivite.replace(/^\d+:/,'').trim().slice(0,30);
-    if(!durByAct[k]) durByAct[k]=[];
-    durByAct[k].push(dur);
-  }));
-  const durLabels=Object.keys(durByAct);
-  const durData=durLabels.map(k=>Math.round(durByAct[k].reduce((a,b)=>a+b,0)/durByAct[k].length));
-  charts['delai']=new Chart(document.getElementById('ch-delai').getContext('2d'),{
-    type:'bar',
-    data:{labels:durLabels,datasets:[{label:'Délai moyen (jours)',data:durData,backgroundColor:'rgba(37,99,235,0.18)',borderColor:'#2563EB',borderWidth:2,borderRadius:6,borderSkipped:false}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-      scales:{y:{ticks:{callback:v=>v+'j',font:{size:11}},grid:{color:'rgba(0,0,0,0.04)'}},x:{ticks:{font:{size:11}},grid:{display:false}}}
-    }
-  });
-
-  // Chronologie mensuelle
-  const monthly={};
-  filtered.forEach(d=>d.activites.forEach(a=>{
-    const dt=a.dateFin||a.dateDebut; if(!dt) return;
-    const k=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');
-    monthly[k]=(monthly[k]||0)+1;
-  }));
-  const mLabels=Object.keys(monthly).sort();
-  const mData=mLabels.map(k=>monthly[k]);
-  charts['chrono']=new Chart(document.getElementById('ch-chrono').getContext('2d'),{
-    type:'line',
-    data:{labels:mLabels,datasets:[{label:'Activités terminées',data:mData,borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,0.08)',tension:0.4,fill:true,pointBackgroundColor:'#7C3AED',pointRadius:4}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-      scales:{y:{ticks:{font:{size:11}},grid:{color:'rgba(0,0,0,0.04)'}},x:{ticks:{font:{size:11}},grid:{display:false}}}
-    }
-  });
-
-  // Sans activité
-  const sans=filtered.filter(d=>d.nbActivites===0).slice(0,8);
-  document.getElementById('sans-act-list').innerHTML=sans.length
-    ? sans.map(d=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bdr);font-size:12px">
-        <span class="cell-id" onclick="openModal('${d.numDemande}')" style="cursor:pointer">${d.numDemande}</span>
-        <span class="badge ${getEtatClass(d.etat)}">${d.etat}</span>
-        <span style="color:var(--txt3);font-family:'DM Mono',monospace;font-size:11px">${fmtDate(d.dateCreation)}</span>
-      </div>`).join('')
-    : '<div style="color:var(--txt3);font-size:12px;padding:8px 0">Aucun dossier sans activité 👍</div>';
+function exportCSV(type){
+  if(!joined.length){alert('Aucune donnée à exporter');return;}
+  let items,name;
+  if(type==='filtered'){items=filtered;name='rejets_cpam';}
+  else if(type==='urgent'){items=joined.filter(d=>d.forc.status==='crit'||d.forc.status==='urg');name='rejets_cpam_urgents';}
+  else if(type==='manager'){items=joined.filter(d=>d.forc.status==='crit'||d.forc.status==='urg');name='rejets_cpam_rapport_manager';}
+  else if(type==='dead'){items=joined.filter(d=>d.forc.status==='dead');name='rejets_cpam_forclos';}
+  else{items=filtered;name='rejets_cpam';}
+  const csv=buildCSVRows(items);
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download=name+'_'+new Date().toISOString().split('T')[0]+'.csv';
+  a.click();
 }
 
-// =====================================================
+function exportCSVSubset(nums){
+  const items=joined.filter(d=>nums.includes(d.numDemande));
+  const csv=buildCSVRows(items);
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download='rejets_cpam_selection_'+new Date().toISOString().split('T')[0]+'.csv';
+  a.click();
+}
+
+// ================================================================
 // NAV
-// =====================================================
-function nav(el, view){
+// ================================================================
+function nav(el,view){
   document.querySelectorAll('.nav-it').forEach(n=>n.classList.remove('on'));
   el.classList.add('on');
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
   document.getElementById('view-'+view).classList.add('on');
   if(joined.length>0){
-    if(view==='dashboard'){ drawEvolChart(); drawEtatChart(); drawTopActivites(); drawAnciennete(); drawTopARH(); }
-    if(view==='table') renderTable();
-    if(view==='activites') drawActivitesView();
-    if(view==='etats') drawEtatsView();
+    if(view==='dashboard') drawDashboard();
+    else if(view==='table') renderTable();
+    else if(view==='alertes') renderAlertes();
+    else if(view==='manager') renderManager();
+    else if(view==='nettoyage') renderNettoyage();
+    else if(view==='activites') drawActivitesView();
   }
 }
 
-// =====================================================
-// EXPORT CSV
-// =====================================================
-function exportCSV(){
-  if(!filtered.length){ alert('Aucune donnée à exporter'); return; }
-  const rows=filtered.map(d=>[
-    d.numDemande,d.type,d.etat,d.libActe,fmtDate(d.dateCreation),d.age!==null?d.age:'',
-    d.dernActivite,fmtDate(d.dateDernActivite),d.arbTraitant,d.equipe,d.nbActivites,d.description
-  ]);
-  const csv=[
-    ['Num demande','Type','Etat','Lib acte','Date creation','Age (jours)','Derniere activite','Date derniere activite','ARH traitant','Equipe','Nb activites','Description'].join(';'),
-    ...rows.map(r=>r.join(';'))
-  ].join('\n');
-  const a=document.createElement('a');
-  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
-  a.download='rejets_cpam_'+new Date().toISOString().split('T')[0]+'.csv';
-  a.click();
+// ================================================================
+// ADMIN ACCESS
+// ================================================================
+const ADMIN_CODE = '170899'; // ← modifiez ce code ici
+
+function openAdminModal(){
+  const ov=document.getElementById('admin-overlay');
+  ov.style.display='flex';
+  setTimeout(()=>document.getElementById('admin-pwd').focus(),50);
 }
+
+function closeAdminModal(){
+  document.getElementById('admin-overlay').style.display='none';
+  document.getElementById('admin-pwd').value='';
+  document.getElementById('admin-err').style.display='none';
+}
+
+function checkAdmin(){
+  const pwd=document.getElementById('admin-pwd').value;
+  if(pwd===ADMIN_CODE){
+    closeAdminModal();
+    unlockAdmin();
+  } else {
+    document.getElementById('admin-err').style.display='block';
+    document.getElementById('admin-pwd').value='';
+    document.getElementById('admin-pwd').focus();
+  }
+}
+
+function unlockAdmin(){
+  document.querySelectorAll('.admin-only').forEach(el=>el.style.display='');
+  const importNav=document.querySelector('.nav-it.admin-only');
+  if(importNav) nav(importNav,'import');
+  sessionStorage.setItem('admin','1');
+}
+
+// Raccourci clavier : Ctrl + Shift + I
+document.addEventListener('keydown',e=>{
+  if(e.ctrlKey&&e.shiftKey&&e.key==='I'){
+    e.preventDefault();
+    if(sessionStorage.getItem('admin')==='1'){
+      const importNav=document.querySelector('.nav-it.admin-only');
+      if(importNav) nav(importNav,'import');
+    } else {
+      openAdminModal();
+    }
+  }
+});
+
+// Fermer modal en cliquant l'overlay
+document.getElementById('admin-overlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('admin-overlay')) closeAdminModal();
+});
+
+// Message topbar si pas de données
+window.addEventListener('DOMContentLoaded',()=>{
+  if(!joined.length){
+    document.getElementById('topbar-sub').textContent='Aucune donnée — accès admin requis pour importer (Ctrl+Shift+I)';
+  }
+});
 </script>
+
+<!-- ADMIN MODAL -->
+<div id="admin-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:500;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:14px;width:360px;padding:28px;box-shadow:0 24px 60px rgba(0,0,0,0.2)">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="width:48px;height:48px;background:#FFF3E8;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:22px">🔐</div>
+      <div style="font-size:15px;font-weight:600">Accès administrateur</div>
+      <div style="font-size:12px;color:#6A6A5E;margin-top:4px">Entrez le code pour accéder à l'import des données</div>
+    </div>
+    <input type="password" id="admin-pwd" placeholder="Code d'accès…"
+      style="width:100%;padding:10px 12px;border:1.5px solid rgba(0,0,0,0.13);border-radius:9px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;text-align:center;letter-spacing:4px;margin-bottom:10px"
+      onkeydown="if(event.key==='Enter')checkAdmin()" oninput="document.getElementById('admin-err').style.display='none'">
+    <div id="admin-err" style="display:none;font-size:12px;color:#D73E3E;text-align:center;margin-bottom:10px">Code incorrect. Réessayez.</div>
+    <div style="display:flex;gap:8px">
+      <button onclick="closeAdminModal()" style="flex:1;padding:9px;border-radius:8px;border:1px solid rgba(0,0,0,0.13);background:transparent;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;color:#6A6A5E">Annuler</button>
+      <button onclick="checkAdmin()" style="flex:1;padding:9px;border-radius:8px;border:none;background:#FF7900;color:#fff;cursor:pointer;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif">Accéder</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
