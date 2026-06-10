@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suivi Rejets CPAM — Orange</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --or: #FF7900;
+  --or2: #CC5200;
+  --or-bg: #FFF3E8;
+  --bg: #F2F1ED;
+  --bg2: #ECEAE4;
+  --sur: #FFFFFF;
+  --sur2: #F8F7F4;
+  --txt: #18180F;
+  --txt2: #6A6A5E;
+  --txt3: #A0A093;
+  --bdr: rgba(0,0,0,0.07);
+  --bdr2: rgba(0,0,0,0.13);
+  --red: #D73E3E;
+  --red-bg: #FEF2F2;
+  --amb: #D97706;
+  --amb-bg: #FFFBEB;
+  --grn: #16A34A;
+  --grn-bg: #F0FDF4;
+  --blu: #2563EB;
+  --blu-bg: #EFF6FF;
+  --pur: #7C3AED;
+  --pur-bg: #F5F3FF;
+  --r: 10px;
+  --rl: 14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5;min-height:100vh}
+
+/* LAYOUT */
+.shell{display:flex;min-height:100vh}
+.side{width:228px;background:var(--txt);color:#fff;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100}
+.side-logo{padding:22px 18px 18px;border-bottom:1px solid rgba(255,255,255,0.07)}
+.side-logo-row{display:flex;align-items:center;gap:10px}
+.side-orb{width:34px;height:34px;border-radius:50%;background:var(--or);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:17px;flex-shrink:0}
+.side-brand{font-weight:600;font-size:15px;letter-spacing:-.3px}
+.side-sub{font-size:10px;color:rgba(255,255,255,0.35);margin-top:2px;font-family:'DM Mono',monospace;letter-spacing:.6px}
+.side-nav{padding:14px 10px;flex:1}
+.nav-lbl{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,0.28);padding:0 8px;margin:14px 0 5px}
+.nav-it{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;color:rgba(255,255,255,0.5);font-size:13px;cursor:pointer;transition:all .15s;margin-bottom:2px;user-select:none}
+.nav-it svg{width:15px;height:15px;flex-shrink:0;opacity:.7}
+.nav-it:hover{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.85)}
+.nav-it.on{background:rgba(255,121,0,0.16);color:var(--or)}
+.nav-it.on svg{opacity:1}
+.side-foot{padding:14px 18px;border-top:1px solid rgba(255,255,255,0.07);font-size:10px;color:rgba(255,255,255,0.22);font-family:'DM Mono',monospace;line-height:1.7}
+.side-badge{display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:9px;font-weight:500;margin-left:auto;font-family:'DM Mono',monospace}
+.side-badge.ok{background:rgba(22,163,74,0.25);color:#4ade80}
+.side-badge.warn{background:rgba(217,119,6,0.25);color:#fbbf24}
+
+.main{margin-left:228px;flex:1;display:flex;flex-direction:column}
+.topbar{background:var(--sur);border-bottom:1px solid var(--bdr);padding:13px 26px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.topbar-l{display:flex;flex-direction:column}
+.topbar-title{font-size:16px;font-weight:600;letter-spacing:-.3px}
+.topbar-sub{font-size:11px;color:var(--txt2);margin-top:1px}
+.topbar-r{display:flex;align-items:center;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:'DM Sans',sans-serif;white-space:nowrap}
+.btn svg{width:14px;height:14px}
+.btn-ghost{background:transparent;color:var(--txt2);border:1px solid var(--bdr2)}
+.btn-ghost:hover{background:var(--bg);color:var(--txt)}
+.btn-or{background:var(--or);color:#fff}
+.btn-or:hover{background:var(--or2)}
+.btn-red{background:var(--red-bg);color:var(--red);border:1px solid rgba(215,62,62,0.2)}
+.btn-red:hover{background:#fee2e2}
+
+.content{padding:22px 26px;flex:1}
+
+/* IMPORT ZONE */
+.import-zone{background:var(--sur);border:1.5px dashed var(--bdr2);border-radius:var(--rl);padding:40px 32px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+.import-zone:hover,.import-zone.drag{border-color:var(--or);background:var(--or-bg)}
+.import-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.import-icon{width:48px;height:48px;margin:0 auto 14px;background:var(--bg2);border-radius:12px;display:flex;align-items:center;justify-content:center}
+.import-icon svg{width:24px;height:24px;color:var(--txt2)}
+.import-title{font-size:15px;font-weight:600;margin-bottom:6px}
+.import-sub{font-size:13px;color:var(--txt2)}
+.import-hint{font-size:11px;color:var(--txt3);margin-top:8px;font-family:'DM Mono',monospace}
+
+.import-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px}
+.import-card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:20px;position:relative;overflow:hidden}
+.import-card.loaded{border-color:rgba(22,163,74,0.35)}
+.import-card-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.import-card-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.import-card-icon.f1{background:var(--or-bg)}
+.import-card-icon.f2{background:var(--blu-bg)}
+.import-card-icon svg{width:18px;height:18px}
+.import-card-label{font-size:13px;font-weight:600}
+.import-card-sub{font-size:11px;color:var(--txt2);margin-top:1px}
+.import-status{display:flex;align-items:center;gap:6px;font-size:12px;padding:6px 10px;border-radius:7px;margin-top:8px}
+.import-status.idle{background:var(--bg2);color:var(--txt2)}
+.import-status.ok{background:var(--grn-bg);color:var(--grn)}
+.import-status.err{background:var(--red-bg);color:var(--red)}
+.dot-status{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dot-status.idle{background:var(--txt3)}
+.dot-status.ok{background:var(--grn)}
+.dot-status.err{background:var(--red)}
+
+/* FILTERS */
+.fbar{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:14px 18px;margin-bottom:18px;display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.fg{display:flex;flex-direction:column;gap:3px}
+.flbl{font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px}
+.fsel,.finp{border:1px solid var(--bdr2);border-radius:8px;padding:6px 9px;font-size:12px;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);cursor:pointer;outline:none;transition:border-color .15s}
+.fsel:focus,.finp:focus{border-color:var(--or)}
+.finp{width:170px}
+.fdiv{width:1px;height:32px;background:var(--bdr);margin-bottom:1px}
+
+/* KPIs */
+.kgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+.kcard{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:16px 18px;position:relative;overflow:hidden}
+.klbl{font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px}
+.kval{font-size:26px;font-weight:600;letter-spacing:-1px;font-family:'DM Mono',monospace;line-height:1}
+.kval.r{color:var(--red)}
+.kval.a{color:var(--amb)}
+.kval.g{color:var(--grn)}
+.kval.b{color:var(--blu)}
+.kval.o{color:var(--or)}
+.ksub{margin-top:6px;font-size:11px;color:var(--txt2)}
+.kacc{position:absolute;bottom:0;left:0;right:0;height:3px}
+.kacc.r{background:var(--red)}
+.kacc.a{background:var(--amb)}
+.kacc.g{background:var(--grn)}
+.kacc.b{background:var(--blu)}
+.kacc.o{background:var(--or)}
+
+/* CHARTS */
+.crow{display:grid;grid-template-columns:3fr 2fr;gap:14px;margin-bottom:18px}
+.crow3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:18px 20px}
+.card-h{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.card-title{font-size:13px;font-weight:600;letter-spacing:-.2px}
+.card-sub{font-size:11px;color:var(--txt2);margin-top:2px}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:500;white-space:nowrap}
+.b-r{background:var(--red-bg);color:#991B1B}
+.b-a{background:var(--amb-bg);color:#92400E}
+.b-g{background:var(--grn-bg);color:#166534}
+.b-b{background:var(--blu-bg);color:#1E40AF}
+.b-p{background:var(--pur-bg);color:#5B21B6}
+.b-gray{background:var(--bg2);color:var(--txt2)}
+
+/* TABLE */
+.tcard{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden}
+.thead-bar{padding:14px 18px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.tabs{display:flex;gap:3px}
+.tab{padding:6px 12px;font-size:12px;font-weight:500;color:var(--txt2);cursor:pointer;border-radius:7px;transition:all .15s}
+.tab.on{background:var(--or-bg);color:var(--or)}
+.tab:hover:not(.on){background:var(--bg)}
+table{width:100%;border-collapse:collapse}
+thead th{padding:9px 14px;text-align:left;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;background:var(--sur2);border-bottom:1px solid var(--bdr);white-space:nowrap;cursor:pointer;user-select:none}
+thead th:hover{color:var(--txt)}
+thead th:first-child{padding-left:18px}
+thead th:last-child{padding-right:18px}
+tbody tr{border-bottom:1px solid var(--bdr);transition:background .1s;cursor:pointer}
+tbody tr:hover{background:var(--sur2)}
+tbody tr:last-child{border-bottom:none}
+tbody td{padding:11px 14px;font-size:12px;vertical-align:middle}
+tbody td:first-child{padding-left:18px}
+tbody td:last-child{padding-right:18px}
+.mono{font-family:'DM Mono',monospace}
+.cell-id{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:var(--or)}
+.sort-arrow{font-size:9px;margin-left:3px;opacity:.5}
+
+/* ACTIVITE PILLS */
+.act-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:5px;font-size:10px;font-weight:500;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.act-1{background:var(--blu-bg);color:var(--blu)}
+.act-2{background:var(--pur-bg);color:var(--pur)}
+.act-3{background:var(--amb-bg);color:#92400E}
+.act-4{background:var(--red-bg);color:var(--red)}
+.act-5{background:var(--grn-bg);color:var(--grn)}
+.act-6{background:var(--grn-bg);color:var(--grn)}
+
+/* PAGINATION */
+.pagi{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;border-top:1px solid var(--bdr);font-size:11px;color:var(--txt2)}
+.pbtns{display:flex;gap:3px}
+.pbtn{min-width:26px;height:26px;border-radius:6px;border:1px solid var(--bdr2);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;font-family:'DM Sans',sans-serif;color:var(--txt2);padding:0 5px;transition:all .1s}
+.pbtn:hover:not(:disabled){background:var(--bg)}
+.pbtn.on{background:var(--or);color:#fff;border-color:var(--or)}
+.pbtn:disabled{opacity:.35;cursor:not-allowed}
+
+/* MODAL */
+.moverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.42);z-index:300;align-items:center;justify-content:center;padding:20px}
+.moverlay.open{display:flex}
+.modal{background:var(--sur);border-radius:var(--rl);width:660px;max-height:88vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,0.18)}
+.mhead{padding:18px 22px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--sur);z-index:1}
+.mhead-title{font-size:15px;font-weight:600}
+.mclose{width:28px;height:28px;border-radius:7px;background:var(--bg);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--txt2);font-size:16px;line-height:1}
+.mbody{padding:22px}
+.msec{margin-bottom:20px}
+.msec-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--txt3);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--bdr)}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mfield label{font-size:10px;color:var(--txt3);display:block;margin-bottom:3px}
+.mfield .v{font-size:13px;font-weight:500}
+.mfield .v.mono{font-family:'DM Mono',monospace;font-size:12px}
+
+/* ACTIVITES TIMELINE */
+.actl{padding:0}
+.act-item{display:grid;grid-template-columns:auto 1fr;gap:14px;padding:10px 0;border-bottom:1px solid var(--bdr)}
+.act-item:last-child{border-bottom:none}
+.act-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0;margin-top:2px}
+.act-body{}
+.act-name{font-size:13px;font-weight:500;margin-bottom:4px}
+.act-meta{display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--txt2)}
+.act-meta span{display:flex;align-items:center;gap:3px}
+
+/* PROGRESS BAR */
+.pbar{height:4px;border-radius:4px;background:var(--bg2);overflow:hidden;margin-top:4px}
+.pfill{height:100%;border-radius:4px;transition:width .3s}
+
+/* TIMELINE STRIP */
+.tstrip{display:flex;gap:0;overflow-x:auto;padding-bottom:4px}
+.tstrip-item{flex:1;min-width:80px;text-align:center;position:relative}
+.tstrip-item::before{content:'';position:absolute;top:11px;left:0;right:0;height:2px;background:var(--bdr2)}
+.tstrip-item:first-child::before{left:50%}
+.tstrip-item:last-child::before{right:50%}
+.tstrip-dot{width:24px;height:24px;border-radius:50%;border:2px solid var(--sur);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;position:relative;z-index:1;font-size:10px;font-weight:600}
+.tstrip-lbl{font-size:10px;color:var(--txt2);line-height:1.3}
+.tstrip-date{font-size:9px;color:var(--txt3);margin-top:2px;font-family:'DM Mono',monospace}
+
+/* EMPTY / LOAD */
+.empty{text-align:center;padding:60px 20px;color:var(--txt3)}
+.empty-icon{font-size:36px;margin-bottom:12px}
+.empty-title{font-size:15px;font-weight:600;color:var(--txt2);margin-bottom:6px}
+
+/* STAT ROWS */
+.stat-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.stat-row-lbl{font-size:12px;color:var(--txt2);width:130px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stat-row-bar{flex:1}
+.stat-row-val{font-size:12px;font-weight:500;font-family:'DM Mono',monospace;text-align:right;width:50px;flex-shrink:0}
+
+/* VIEWS */
+.view{display:none}
+.view.on{display:block}
+
+/* ARH TABLE */
+.arh-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.arh-card{background:var(--sur2);border:1px solid var(--bdr);border-radius:9px;padding:12px 14px}
+.arh-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.arh-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+.arh-name{font-size:13px;font-weight:500}
+.arh-sub{font-size:11px;color:var(--txt2)}
+
+@media(max-width:1300px){.kgrid{grid-template-columns:repeat(3,1fr)}.crow{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- SIDEBAR -->
+<aside class="side">
+  <div class="side-logo">
+    <div class="side-logo-row">
+      <div class="side-orb">O</div>
+      <div>
+        <div class="side-brand">Orange</div>
+        <div class="side-sub">SUIVI REJETS CPAM</div>
+      </div>
+    </div>
+  </div>
+  <nav class="side-nav">
+    <div class="nav-lbl">Import données</div>
+    <div class="nav-it on" onclick="nav(this,'import')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M8 12l4-4 4 4M12 8v8"/></svg>
+      Charger les fichiers
+      <span class="side-badge warn" id="nb-files">0/2</span>
+    </div>
+    <div class="nav-lbl">Tableau de bord</div>
+    <div class="nav-it" onclick="nav(this,'dashboard')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Vue globale
+    </div>
+    <div class="nav-it" onclick="nav(this,'table')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 10h18M3 6h18M3 14h18M3 18h18"/></svg>
+      Détail dossiers
+    </div>
+    <div class="nav-lbl">Analyse</div>
+    <div class="nav-it" onclick="nav(this,'activites')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Activités ARH
+    </div>
+    <div class="nav-it" onclick="nav(this,'etats')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      États & délais
+    </div>
+    <div class="nav-lbl">Export</div>
+    <div class="nav-it" onclick="exportCSV()">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 12l-4 4-4-4M12 8v8"/></svg>
+      Exporter CSV
+    </div>
+  </nav>
+  <div class="side-foot" id="side-foot">
+    Aucune donnée chargée<br>Importez les 2 fichiers
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-l">
+      <div class="topbar-title" id="topbar-title">Suivi des Rejets CPAM</div>
+      <div class="topbar-sub" id="topbar-sub">Importez vos fichiers Excel pour démarrer</div>
+    </div>
+    <div class="topbar-r">
+      <button class="btn btn-ghost" onclick="resetFilters()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15"/></svg>
+        Réinitialiser
+      </button>
+      <button class="btn btn-or" onclick="exportCSV()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 12l-4 4-4-4M12 8v8"/></svg>
+        Exporter
+      </button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- VIEW IMPORT -->
+    <div class="view on" id="view-import">
+      <div style="max-width:700px;margin:0 auto">
+        <div style="margin-bottom:22px">
+          <h2 style="font-size:18px;font-weight:600;margin-bottom:6px">Chargement des données</h2>
+          <p style="font-size:13px;color:var(--txt2)">Importez vos deux fichiers Excel. La jointure se fait automatiquement sur le champ <span style="font-family:'DM Mono',monospace;background:var(--bg2);padding:1px 6px;border-radius:4px">Num demande</span>.</p>
+        </div>
+
+        <div class="import-grid">
+          <!-- FICHIER 1 -->
+          <div class="import-card" id="card-f1">
+            <div class="import-card-head">
+              <div class="import-card-icon f1">
+                <svg fill="none" stroke="var(--or)" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              </div>
+              <div>
+                <div class="import-card-label">Fichier Demandes</div>
+                <div class="import-card-sub">Num demande · Type · Lib état · Description · Date création · Lib acte</div>
+              </div>
+            </div>
+            <div class="import-zone" id="zone-f1" ondragover="dragOver(event,'zone-f1')" ondragleave="dragLeave('zone-f1')" ondrop="dropFile(event,'f1')">
+              <input type="file" accept=".xlsx,.xls,.csv" onchange="loadFile(this,'f1')">
+              <div style="pointer-events:none">
+                <div class="import-icon">
+                  <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M8 12l4-4 4 4M12 8v8"/></svg>
+                </div>
+                <div class="import-title">Glisser-déposer ou cliquer</div>
+                <div class="import-sub">.xlsx · .xls · .csv</div>
+              </div>
+            </div>
+            <div class="import-status idle" id="status-f1">
+              <div class="dot-status idle" id="dot-f1"></div>
+              <span id="msg-f1">En attente du fichier…</span>
+            </div>
+          </div>
+
+          <!-- FICHIER 2 -->
+          <div class="import-card" id="card-f2">
+            <div class="import-card-head">
+              <div class="import-card-icon f2">
+                <svg fill="none" stroke="var(--blu)" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              </div>
+              <div>
+                <div class="import-card-label">Fichier Activités</div>
+                <div class="import-card-sub">Num demande · Lib activité · Dates · ARH traitant · Équipe</div>
+              </div>
+            </div>
+            <div class="import-zone" id="zone-f2" ondragover="dragOver(event,'zone-f2')" ondragleave="dragLeave('zone-f2')" ondrop="dropFile(event,'f2')">
+              <input type="file" accept=".xlsx,.xls,.csv" onchange="loadFile(this,'f2')">
+              <div style="pointer-events:none">
+                <div class="import-icon">
+                  <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M8 12l4-4 4 4M12 8v8"/></svg>
+                </div>
+                <div class="import-title">Glisser-déposer ou cliquer</div>
+                <div class="import-sub">.xlsx · .xls · .csv</div>
+              </div>
+            </div>
+            <div class="import-status idle" id="status-f2">
+              <div class="dot-status idle" id="dot-f2"></div>
+              <span id="msg-f2">En attente du fichier…</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="import-ready" style="display:none">
+          <div style="background:var(--grn-bg);border:1px solid rgba(22,163,74,0.3);border-radius:var(--r);padding:14px 18px;display:flex;align-items:center;gap:12px">
+            <svg fill="none" stroke="var(--grn)" stroke-width="2" viewBox="0 0 24 24" style="width:20px;height:20px;flex-shrink:0"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--grn)">Les deux fichiers sont chargés et jointurés</div>
+              <div style="font-size:12px;color:var(--txt2);margin-top:2px" id="join-info">—</div>
+            </div>
+            <button class="btn btn-or" style="margin-left:auto" onclick="nav(document.querySelector('.nav-it:nth-child(3)'),'dashboard')">Voir le tableau de bord →</button>
+          </div>
+        </div>
+
+        <div id="col-preview" style="display:none;margin-top:18px">
+          <div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--txt2)">COLONNES DÉTECTÉES</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="col-preview-inner"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW DASHBOARD -->
+    <div class="view" id="view-dashboard">
+      <!-- FILTERS -->
+      <div class="fbar">
+        <div class="fg">
+          <div class="flbl">État demande</div>
+          <select class="fsel" id="f-etat" onchange="applyFilters()">
+            <option value="">Tous</option>
+            <option>En cours</option>
+            <option>En attente</option>
+            <option>Clôturé</option>
+            <option>Annulé</option>
+          </select>
+        </div>
+        <div class="fg">
+          <div class="flbl">Période (création)</div>
+          <select class="fsel" id="f-periode" onchange="applyFilters()">
+            <option value="">Toute période</option>
+          </select>
+        </div>
+        <div class="fg">
+          <div class="flbl">Dernière activité</div>
+          <select class="fsel" id="f-activite" onchange="applyFilters()">
+            <option value="">Toutes</option>
+          </select>
+        </div>
+        <div class="fg">
+          <div class="flbl">ARH traitant</div>
+          <select class="fsel" id="f-arh" onchange="applyFilters()">
+            <option value="">Tous</option>
+          </select>
+        </div>
+        <div class="fdiv"></div>
+        <div class="fg">
+          <div class="flbl">Recherche</div>
+          <div style="position:relative">
+            <input type="text" class="finp" id="f-search" placeholder="Num demande…" oninput="applyFilters()">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:13px;height:13px;position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--txt3)"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kgrid">
+        <div class="kcard"><div class="klbl">Total dossiers</div><div class="kval b" id="k-total">—</div><div class="ksub" id="k-total-sub">—</div><div class="kacc b"></div></div>
+        <div class="kcard"><div class="klbl">En cours</div><div class="kval a" id="k-encours">—</div><div class="ksub" id="k-encours-sub">—</div><div class="kacc a"></div></div>
+        <div class="kcard"><div class="klbl">En attente</div><div class="kval r" id="k-attente">—</div><div class="ksub">Nécessitent une action</div><div class="kacc r"></div></div>
+        <div class="kcard"><div class="klbl">Sans activité récente</div><div class="kval r" id="k-inactif">—</div><div class="ksub">> 30 jours sans activité</div><div class="kacc r"></div></div>
+        <div class="kcard"><div class="klbl">Durée moy. traitement</div><div class="kval g" id="k-duree">—</div><div class="ksub">Jours (activité → fin)</div><div class="kacc g"></div></div>
+      </div>
+
+      <!-- CHARTS -->
+      <div class="crow">
+        <div class="card">
+          <div class="card-h">
+            <div><div class="card-title">Évolution mensuelle des demandes</div><div class="card-sub">Par mois de création</div></div>
+          </div>
+          <div style="position:relative;height:230px"><canvas id="ch-evol" role="img" aria-label="Évolution mensuelle">Données mensuelles</canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div><div class="card-title">Répartition par état</div><div class="card-sub">Lib état demande</div></div></div>
+          <div style="position:relative;height:190px"><canvas id="ch-etat" role="img" aria-label="États des demandes">États</canvas></div>
+          <div id="etat-legend" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--txt2)"></div>
+        </div>
+      </div>
+
+      <div class="crow3">
+        <div class="card">
+          <div class="card-h"><div class="card-title">Top activités en cours</div></div>
+          <div id="top-activites"></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-title">Ancienneté dossiers actifs</div></div>
+          <div id="anciennete"></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-title">ARH — volume dossiers</div></div>
+          <div id="top-arh"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW TABLE -->
+    <div class="view" id="view-table">
+      <div class="tcard">
+        <div class="thead-bar">
+          <div class="tabs">
+            <div class="tab on" onclick="setTab(this,'')">Tous <span id="tab-cnt-all" style="font-family:'DM Mono',monospace;font-size:10px;margin-left:4px"></span></div>
+            <div class="tab" onclick="setTab(this,'En cours')">En cours <span id="tab-cnt-encours" style="font-family:'DM Mono',monospace;font-size:10px;margin-left:4px"></span></div>
+            <div class="tab" onclick="setTab(this,'En attente')">En attente <span id="tab-cnt-attente" style="font-family:'DM Mono',monospace;font-size:10px;margin-left:4px"></span></div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select class="fsel" id="t-sort" onchange="renderTable()" style="font-size:11px">
+              <option value="date-desc">Date créa. ↓</option>
+              <option value="date-asc">Date créa. ↑</option>
+              <option value="act-desc">Dernière activité ↓</option>
+              <option value="age-desc">Ancienneté ↓</option>
+            </select>
+            <span style="font-size:12px;color:var(--txt2)"><span id="t-count">—</span> dossiers</span>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Num demande</th>
+                <th>Type</th>
+                <th>État</th>
+                <th>Date création</th>
+                <th>Âge (j)</th>
+                <th>Dernière activité</th>
+                <th>Date fin activité</th>
+                <th>ARH traitant</th>
+                <th>Équipe</th>
+                <th>Nb activités</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="t-body"></tbody>
+          </table>
+        </div>
+        <div class="pagi">
+          <span id="p-info">—</span>
+          <div class="pbtns" id="p-btns"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW ACTIVITES -->
+    <div class="view" id="view-activites">
+      <div class="crow">
+        <div class="card">
+          <div class="card-h"><div><div class="card-title">Distribution des types d'activités</div><div class="card-sub">Par libellé d'activité</div></div></div>
+          <div style="position:relative;height:280px"><canvas id="ch-act" role="img" aria-label="Activités">Activités</canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-title">Charge par ARH</div></div>
+          <div id="arh-charge"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><div><div class="card-title">Matrice dossiers × activités</div><div class="card-sub">Dernier statut de chaque dossier actif</div></div></div>
+        <div id="matrice-act" style="overflow-x:auto"></div>
+      </div>
+    </div>
+
+    <!-- VIEW ETATS -->
+    <div class="view" id="view-etats">
+      <div class="crow3">
+        <div class="card" style="grid-column:span 2">
+          <div class="card-h"><div><div class="card-title">Délai moyen par type d'activité</div><div class="card-sub">Jours entre date début et fin d'activité</div></div></div>
+          <div style="position:relative;height:240px"><canvas id="ch-delai" role="img" aria-label="Délais par activité">Délais</canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-title">Dossiers sans activité</div></div>
+          <div id="sans-act-list"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><div><div class="card-title">Chronologie globale des activités</div><div class="card-sub">Tous dossiers — activités par mois</div></div></div>
+        <div style="position:relative;height:220px"><canvas id="ch-chrono" role="img" aria-label="Chronologie">Chronologie</canvas></div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+</div>
+
+<!-- MODAL DETAIL -->
+<div class="moverlay" id="moverlay" onclick="closeMod(event)">
+  <div class="modal">
+    <div class="mhead">
+      <div>
+        <div class="mhead-title" id="m-title">—</div>
+        <div style="font-size:11px;color:var(--txt2);margin-top:2px" id="m-sub">—</div>
+      </div>
+      <button class="mclose" onclick="document.getElementById('moverlay').classList.remove('open')">×</button>
+    </div>
+    <div class="mbody" id="m-body"></div>
+  </div>
+</div>
+
+<script>
+// =====================================================
+// STATE
+// =====================================================
+let demandes = [];   // fichier 1
+let activites = [];  // fichier 2
+let joined = [];     // jointure
+let filtered = [];
+let currentTab = '';
+let currentPage = 1;
+const PAGE = 15;
+let charts = {};
+let sortCol = 'date-desc';
+let f1Loaded = false, f2Loaded = false;
+
+// =====================================================
+// FILE IMPORT
+// =====================================================
+function dragOver(e, id){ e.preventDefault(); document.getElementById(id).classList.add('drag'); }
+function dragLeave(id){ document.getElementById(id).classList.remove('drag'); }
+function dropFile(e, which){ e.preventDefault(); dragLeave('zone-'+which); const f=e.dataTransfer.files[0]; if(f) parseFile(f, which); }
+function loadFile(inp, which){ if(inp.files[0]) parseFile(inp.files[0], which); }
+
+function parseFile(file, which){
+  setStatus(which,'idle','Lecture en cours…');
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, {type:'binary', cellDates:true});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const data = XLSX.utils.sheet_to_json(ws, {defval:''});
+      if(which==='f1'){
+        demandes = data;
+        f1Loaded = true;
+        setStatus('f1','ok',`${data.length} lignes chargées · ${Object.keys(data[0]||{}).length} colonnes`);
+        document.getElementById('card-f1').classList.add('loaded');
+        showColPreview('f1', data);
+      } else {
+        activites = data;
+        f2Loaded = true;
+        setStatus('f2','ok',`${data.length} lignes chargées · ${Object.keys(data[0]||{}).length} colonnes`);
+        document.getElementById('card-f2').classList.add('loaded');
+        showColPreview('f2', data);
+      }
+      updateFileBadge();
+      if(f1Loaded && f2Loaded) buildJoin();
+    } catch(err){
+      setStatus(which,'err','Erreur de lecture : '+err.message);
+    }
+  };
+  reader.readAsBinaryString(file);
+}
+
+function setStatus(which, type, msg){
+  const s=document.getElementById('status-'+which);
+  const d=document.getElementById('dot-'+which);
+  s.className='import-status '+type;
+  d.className='dot-status '+type;
+  document.getElementById('msg-'+which).textContent=msg;
+}
+
+function showColPreview(which, data){
+  const keys = Object.keys(data[0]||{});
+  const prev = document.getElementById('col-preview');
+  const inner = document.getElementById('col-preview-inner');
+  prev.style.display='block';
+  const existing = inner.innerHTML;
+  const color = which==='f1' ? 'var(--or)' : 'var(--blu)';
+  const label = which==='f1' ? 'Demandes' : 'Activités';
+  const newHtml = `<div style="background:var(--sur2);border:1px solid var(--bdr);border-radius:9px;padding:12px 14px">
+    <div style="font-size:11px;font-weight:600;color:${color};margin-bottom:8px">${label}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px">${keys.map(k=>`<span style="font-size:10px;font-family:'DM Mono',monospace;background:var(--bg2);padding:2px 6px;border-radius:4px;color:var(--txt2)">${k}</span>`).join('')}</div>
+  </div>`;
+  inner.innerHTML = existing + newHtml;
+}
+
+// =====================================================
+// JOIN
+// =====================================================
+function findCol(obj, candidates){
+  const keys = Object.keys(obj);
+  for(const c of candidates){
+    const found = keys.find(k => k.toLowerCase().replace(/[\s_]/g,'').includes(c.toLowerCase().replace(/[\s_]/g,'')));
+    if(found) return found;
+  }
+  return null;
+}
+
+function buildJoin(){
+  if(!demandes.length || !activites.length) return;
+
+  // Detect key columns
+  const keyD = findCol(demandes[0], ['numdemande','num_demande','numérodemande','numero','numdem']) || Object.keys(demandes[0])[0];
+  const keyA = findCol(activites[0], ['numdemande','num_demande','numérodemande','numero','numdem']) || Object.keys(activites[0])[0];
+  const colEtat = findCol(demandes[0], ['libetatdemande','etat','état','statut','libétatdemande']) || 'Lib état demande';
+  const colDesc = findCol(demandes[0], ['descriptiondemande','description','desc']) || 'Description demande';
+  const colDateCreation = findCol(demandes[0], ['datecreation','datecréation','date']) || 'Date création';
+  const colLibActe = findCol(demandes[0], ['libacte','acte','lib acte']) || 'Lib acte';
+  const colType = findCol(demandes[0], ['typedemande','type']) || 'Type demande';
+  const colLibAct = findCol(activites[0], ['libactivite','libactivité','activite','activité','libelleactivite']) || 'Lib activité';
+  const colDateDebAct = findCol(activites[0], ['datedebutactivite','datedebutact','datedébut']) || 'Date début activité';
+  const colDateFinAct = findCol(activites[0], ['datefinactivite','datefinact','datefin']) || 'Date fin activité';
+  const colHDebAct = findCol(activites[0], ['heuredebutactivite','heuredébut']) || 'Heure début activité';
+  const colHFinAct = findCol(activites[0], ['heurefinactivite','heurefin']) || 'Heure fin activité';
+  const colCUID = findCol(activites[0], ['cuidarh','cuid']) || 'CUID ARH traitant activité';
+  const colNomARH = findCol(activites[0], ['nomarh','nom']) || 'Nom ARH traitant';
+  const colPrenomARH = findCol(activites[0], ['prenomarh','prenom']) || 'Prénom ARH traitant';
+  const colEquipe = findCol(activites[0], ['libelleequipe','equipe','équipe']) || 'Libellé équipe ARH';
+
+  // Group activites by num demande
+  const actMap = {};
+  activites.forEach(a => {
+    const num = String(a[keyA]||'').trim();
+    if(!actMap[num]) actMap[num] = [];
+    actMap[num].push(a);
+  });
+
+  // Join
+  joined = demandes.map(d => {
+    const num = String(d[keyD]||'').trim();
+    const acts = (actMap[num]||[]).map(a => ({
+      libActivite: String(a[colLibAct]||'').trim(),
+      dateDebut: parseDate(a[colDateDebAct]),
+      dateFin: parseDate(a[colDateFinAct]),
+      heureDebut: String(a[colHDebAct]||'').trim(),
+      heureFin: String(a[colHFinAct]||'').trim(),
+      cuid: String(a[colCUID]||'').trim(),
+      nomARH: String(a[colNomARH]||'').trim(),
+      prenomARH: String(a[colPrenomARH]||'').trim(),
+      equipe: String(a[colEquipe]||'').trim(),
+      _raw: a
+    }));
+
+    // Sort acts by date fin desc → dernière activité
+    acts.sort((a,b)=> (b.dateFin||b.dateDebut||0) - (a.dateFin||a.dateDebut||0));
+    const lastAct = acts[0];
+    const dateCreation = parseDate(d[colDateCreation]);
+    const today = new Date(); today.setHours(0,0,0,0);
+    const age = dateCreation ? Math.round((today-dateCreation)/86400000) : null;
+
+    return {
+      numDemande: num,
+      type: String(d[colType]||'').trim(),
+      etat: String(d[colEtat]||'').trim(),
+      description: String(d[colDesc]||'').trim(),
+      dateCreation,
+      libActe: String(d[colLibActe]||'').trim(),
+      activites: acts,
+      dernActivite: lastAct ? lastAct.libActivite : '',
+      dateDernActivite: lastAct ? (lastAct.dateFin||lastAct.dateDebut) : null,
+      arbTraitant: lastAct ? `${lastAct.prenomARH} ${lastAct.nomARH}`.trim() : '',
+      equipe: lastAct ? lastAct.equipe : '',
+      nbActivites: acts.length,
+      age,
+      _raw: d
+    };
+  });
+
+  // Count joins
+  const withAct = joined.filter(d=>d.nbActivites>0).length;
+  document.getElementById('join-info').textContent = `${joined.length} demandes · ${withAct} jointurées avec des activités · ${joined.length-withAct} sans activité`;
+  document.getElementById('import-ready').style.display='block';
+  document.getElementById('side-foot').innerHTML = `${joined.length} demandes<br>${activites.length} activités`;
+
+  populateFilters();
+  applyFilters();
+}
+
+function parseDate(v){
+  if(!v) return null;
+  if(v instanceof Date) return v;
+  if(typeof v === 'number') return new Date(Math.round((v-25569)*86400000)); // Excel serial
+  const s = String(v).trim();
+  if(!s) return null;
+  // dd/mm/yyyy or dd/mm/yyyy hh:mm
+  const m1 = s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if(m1) return new Date(+m1[3],+m1[2]-1,+m1[1]);
+  const d = new Date(s);
+  return isNaN(d) ? null : d;
+}
+
+function fmtDate(d){ if(!d) return '—'; return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'}); }
+
+// =====================================================
+// FILTERS POPULATE
+// =====================================================
+function populateFilters(){
+  const etats = [...new Set(joined.map(d=>d.etat).filter(Boolean))].sort();
+  const sel = document.getElementById('f-etat');
+  sel.innerHTML='<option value="">Tous</option>'+etats.map(e=>`<option>${e}</option>`).join('');
+
+  // Periods (year-month)
+  const months = [...new Set(joined.map(d=>{
+    if(!d.dateCreation) return null;
+    return d.dateCreation.getFullYear()+'-'+String(d.dateCreation.getMonth()+1).padStart(2,'0');
+  }).filter(Boolean))].sort().reverse();
+  const psel = document.getElementById('f-periode');
+  psel.innerHTML='<option value="">Toute période</option>'+months.map(m=>`<option value="${m}">${m}</option>`).join('');
+
+  const acts = [...new Set(joined.flatMap(d=>d.activites.map(a=>a.libActivite)).filter(Boolean))].sort();
+  const asel = document.getElementById('f-activite');
+  asel.innerHTML='<option value="">Toutes</option>'+acts.map(a=>`<option>${a}</option>`).join('');
+
+  const arhs = [...new Set(joined.map(d=>d.arbTraitant).filter(Boolean))].sort();
+  const rsel = document.getElementById('f-arh');
+  rsel.innerHTML='<option value="">Tous</option>'+arhs.map(a=>`<option>${a}</option>`).join('');
+}
+
+// =====================================================
+// FILTERS APPLY
+// =====================================================
+function applyFilters(){
+  const etat = document.getElementById('f-etat')?.value||'';
+  const periode = document.getElementById('f-periode')?.value||'';
+  const activite = document.getElementById('f-activite')?.value||'';
+  const arh = document.getElementById('f-arh')?.value||'';
+  const search = (document.getElementById('f-search')?.value||'').toLowerCase();
+
+  filtered = joined.filter(d=>{
+    if(etat && d.etat!==etat) return false;
+    if(periode && d.dateCreation){
+      const dp = d.dateCreation.getFullYear()+'-'+String(d.dateCreation.getMonth()+1).padStart(2,'0');
+      if(dp!==periode) return false;
+    }
+    if(activite && d.dernActivite!==activite) return false;
+    if(arh && d.arbTraitant!==arh) return false;
+    if(search && !d.numDemande.toLowerCase().includes(search) && !d.description.toLowerCase().includes(search)) return false;
+    if(currentTab && d.etat!==currentTab) return false;
+    return true;
+  });
+
+  currentPage=1;
+  updateAll();
+}
+
+function resetFilters(){
+  ['f-etat','f-periode','f-activite','f-arh'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  const s=document.getElementById('f-search'); if(s) s.value='';
+  currentTab=''; document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('on',i===0));
+  applyFilters();
+}
+
+function setTab(el, tab){
+  currentTab=tab;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  currentPage=1;
+  applyFilters();
+}
+
+// =====================================================
+// UPDATE ALL
+// =====================================================
+function updateAll(){
+  updateKPIs();
+  updateTopbar();
+  updateTabCounts();
+  renderTable();
+  if(document.getElementById('view-dashboard').classList.contains('on')){
+    drawEvolChart(); drawEtatChart(); drawTopActivites(); drawAnciennete(); drawTopARH();
+  }
+  if(document.getElementById('view-activites').classList.contains('on')) drawActivitesView();
+  if(document.getElementById('view-etats').classList.contains('on')) drawEtatsView();
+}
+
+function updateTopbar(){
+  document.getElementById('topbar-sub').textContent = `${filtered.length} dossiers affichés · Rejet CPAM`;
+}
+
+function updateTabCounts(){
+  document.getElementById('tab-cnt-all').textContent = joined.length;
+  document.getElementById('tab-cnt-encours').textContent = joined.filter(d=>d.etat==='En cours').length;
+  document.getElementById('tab-cnt-attente').textContent = joined.filter(d=>d.etat==='En attente').length;
+}
+
+function updateFileBadge(){
+  const n = (f1Loaded?1:0)+(f2Loaded?1:0);
+  const b=document.getElementById('nb-files');
+  b.textContent=n+'/2';
+  b.className='side-badge '+(n===2?'ok':'warn');
+}
+
+// =====================================================
+// KPIs
+// =====================================================
+function updateKPIs(){
+  const total=filtered.length;
+  const encours=filtered.filter(d=>d.etat==='En cours').length;
+  const attente=filtered.filter(d=>d.etat==='En attente').length;
+  const today=new Date(); today.setHours(0,0,0,0);
+  const inactif=filtered.filter(d=>{
+    if(!d.dateDernActivite) return true;
+    const diff=Math.round((today-d.dateDernActivite)/86400000);
+    return diff>30;
+  }).length;
+
+  // avg duration (dateDebut → dateFin of last activity)
+  const durs=filtered.filter(d=>d.activites.length>0).map(d=>{
+    const first=d.activites[d.activites.length-1];
+    const last=d.activites[0];
+    if(!first.dateDebut||!last.dateFin) return null;
+    return Math.round((last.dateFin-first.dateDebut)/86400000);
+  }).filter(v=>v!==null&&v>=0);
+  const avgDur=durs.length ? Math.round(durs.reduce((a,b)=>a+b,0)/durs.length) : null;
+
+  document.getElementById('k-total').textContent=total;
+  document.getElementById('k-total-sub').textContent=`${total} demandes Rejet CPAM`;
+  document.getElementById('k-encours').textContent=encours;
+  document.getElementById('k-encours-sub').textContent=total?Math.round(encours/total*100)+'% du total':'—';
+  document.getElementById('k-attente').textContent=attente;
+  document.getElementById('k-inactif').textContent=inactif;
+  document.getElementById('k-duree').textContent=avgDur!==null?avgDur+'j':'—';
+}
+
+// =====================================================
+// CHARTS
+// =====================================================
+function dc(id){ if(charts[id]){ charts[id].destroy(); delete charts[id]; } }
+
+function drawEvolChart(){
+  dc('evol');
+  const months={};
+  filtered.forEach(d=>{
+    if(!d.dateCreation) return;
+    const k=d.dateCreation.getFullYear()+'-'+String(d.dateCreation.getMonth()+1).padStart(2,'0');
+    months[k]=(months[k]||0)+1;
+  });
+  const labels=Object.keys(months).sort();
+  const data=labels.map(k=>months[k]);
+  charts['evol']=new Chart(document.getElementById('ch-evol').getContext('2d'),{
+    type:'bar',
+    data:{labels:labels,datasets:[{
+      label:'Demandes créées',data,
+      backgroundColor:'rgba(255,121,0,0.18)',borderColor:'#FF7900',borderWidth:2,
+      borderRadius:6,borderSkipped:false
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{y:{ticks:{font:{size:11}},grid:{color:'rgba(0,0,0,0.04)'}},x:{ticks:{font:{size:11}},grid:{display:false}}}
+    }
+  });
+}
+
+function drawEtatChart(){
+  dc('etat');
+  const counts={};
+  filtered.forEach(d=>{ counts[d.etat]=(counts[d.etat]||0)+1; });
+  const labels=Object.keys(counts);
+  const data=labels.map(k=>counts[k]);
+  const colors={'En cours':'#D97706','En attente':'#D73E3E','Clôturé':'#16A34A','Annulé':'#6B7280'};
+  const bg=labels.map(l=>colors[l]||'#2563EB');
+  charts['etat']=new Chart(document.getElementById('ch-etat').getContext('2d'),{
+    type:'doughnut',
+    data:{labels,datasets:[{data,backgroundColor:bg,borderWidth:3,borderColor:'#fff',hoverOffset:6}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false}}}
+  });
+  document.getElementById('etat-legend').innerHTML=labels.map((l,i)=>`
+    <span style="display:flex;align-items:center;gap:4px">
+      <span style="width:8px;height:8px;border-radius:2px;background:${bg[i]}"></span>${l} (${data[i]})
+    </span>`).join('');
+}
+
+function drawTopActivites(){
+  const acts={};
+  filtered.forEach(d=>d.activites.forEach(a=>{ if(a.libActivite) acts[a.libActivite]=(acts[a.libActivite]||0)+1; }));
+  const sorted=Object.entries(acts).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const max=sorted[0]?.[1]||1;
+  const actColors=['#2563EB','#7C3AED','#D97706','#D73E3E','#16A34A','#FF7900'];
+  document.getElementById('top-activites').innerHTML=sorted.map(([lbl,cnt],i)=>`
+    <div class="stat-row">
+      <div class="stat-row-lbl" title="${lbl}">${lbl.replace(/^\d+:/,'')}</div>
+      <div class="stat-row-bar"><div class="pbar"><div class="pfill" style="width:${Math.round(cnt/max*100)}%;background:${actColors[i%actColors.length]}"></div></div></div>
+      <div class="stat-row-val">${cnt}</div>
+    </div>`).join('')||'<div style="color:var(--txt3);font-size:12px">Aucune activité</div>';
+}
+
+function drawAnciennete(){
+  const today=new Date(); today.setHours(0,0,0,0);
+  const buckets=[
+    {lbl:'< 30 j',min:0,max:29,c:'#16A34A'},
+    {lbl:'30–90 j',min:30,max:90,c:'#D97706'},
+    {lbl:'91–180 j',min:91,max:180,c:'#D73E3E'},
+    {lbl:'> 180 j',min:181,max:9999,c:'#7F1D1D'},
+  ];
+  const counts=buckets.map(b=>filtered.filter(d=>d.etat!=='Clôturé'&&d.age!==null&&d.age>=b.min&&d.age<=b.max).length);
+  const max=Math.max(...counts,1);
+  document.getElementById('anciennete').innerHTML=buckets.map((b,i)=>`
+    <div class="stat-row">
+      <div class="stat-row-lbl">${b.lbl}</div>
+      <div class="stat-row-bar"><div class="pbar"><div class="pfill" style="width:${Math.round(counts[i]/max*100)}%;background:${b.c}"></div></div></div>
+      <div class="stat-row-val">${counts[i]}</div>
+    </div>`).join('');
+}
+
+function drawTopARH(){
+  const arhs={};
+  filtered.forEach(d=>{ if(d.arbTraitant) arhs[d.arbTraitant]=(arhs[d.arbTraitant]||0)+1; });
+  const sorted=Object.entries(arhs).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const max=sorted[0]?.[1]||1;
+  document.getElementById('top-arh').innerHTML=sorted.map(([nom,cnt],i)=>{
+    const ini=nom.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+    const bg=['#FF7900','#2563EB','#D97706','#7C3AED','#16A34A','#D73E3E'][i%6];
+    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:9px">
+      <div style="width:26px;height:26px;border-radius:50%;background:${bg};color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">${ini}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nom}</div>
+        <div class="pbar" style="margin-top:3px"><div class="pfill" style="width:${Math.round(cnt/max*100)}%;background:${bg}"></div></div>
+      </div>
+      <div style="font-size:11px;font-family:'DM Mono',monospace;font-weight:500;flex-shrink:0">${cnt}</div>
+    </div>`;
+  }).join('')||'<div style="color:var(--txt3);font-size:12px">Aucun ARH</div>';
+}
+
+// =====================================================
+// TABLE
+// =====================================================
+function getActClass(lib){
+  if(!lib) return 'b-gray';
+  const n=parseInt(lib);
+  if(n===1) return 'act-1';if(n===2) return 'act-2';if(n===3) return 'act-3';
+  if(n===4) return 'act-4';if(n===5) return 'act-5';if(n===6) return 'act-6';
+  return 'b-gray';
+}
+function getEtatClass(e){
+  return {
+    'En cours':'b-a','En attente':'b-r','Clôturé':'b-g','Annulé':'b-gray'
+  }[e]||'b-gray';
+}
+
+function renderTable(){
+  if(!filtered.length){
+    document.getElementById('t-body').innerHTML=`<tr><td colspan="11" style="text-align:center;padding:40px;color:var(--txt3)">Aucun dossier — importez vos fichiers</td></tr>`;
+    document.getElementById('t-count').textContent='0';
+    return;
+  }
+  sortCol = document.getElementById('t-sort')?.value||'date-desc';
+  const data=[...filtered];
+  if(sortCol==='date-desc') data.sort((a,b)=>(b.dateCreation||0)-(a.dateCreation||0));
+  if(sortCol==='date-asc') data.sort((a,b)=>(a.dateCreation||0)-(b.dateCreation||0));
+  if(sortCol==='act-desc') data.sort((a,b)=>(b.dateDernActivite||0)-(a.dateDernActivite||0));
+  if(sortCol==='age-desc') data.sort((a,b)=>(b.age||0)-(a.age||0));
+
+  const total=data.length;
+  const start=(currentPage-1)*PAGE;
+  const page=data.slice(start,start+PAGE);
+
+  document.getElementById('t-count').textContent=total;
+  document.getElementById('p-info').textContent=`${start+1}–${Math.min(start+PAGE,total)} sur ${total}`;
+
+  const today=new Date(); today.setHours(0,0,0,0);
+  document.getElementById('t-body').innerHTML=page.map(d=>{
+    const alertAge = d.age!==null && d.age>90 && d.etat!=='Clôturé';
+    const alertInact = !d.dateDernActivite || Math.round((today-d.dateDernActivite)/86400000)>30;
+    return `<tr onclick="openModal('${d.numDemande}')" style="${alertAge||alertInact?'background:rgba(215,62,62,0.03)':''}">
+      <td><span class="cell-id">${d.numDemande}</span></td>
+      <td style="color:var(--txt2);font-size:11px">${d.type}</td>
+      <td><span class="badge ${getEtatClass(d.etat)}">${d.etat||'—'}</span></td>
+      <td class="mono" style="font-size:11px">${fmtDate(d.dateCreation)}</td>
+      <td><span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:${d.age>90?'var(--red)':d.age>30?'var(--amb)':'var(--txt2)'}">${d.age!==null?d.age+'j':'—'}</span></td>
+      <td><span class="badge ${getActClass(d.dernActivite)}" title="${d.dernActivite}">${d.dernActivite?d.dernActivite.replace(/^\d+:/,'').trim().slice(0,32):'—'}</span></td>
+      <td class="mono" style="font-size:11px">${fmtDate(d.dateDernActivite)}</td>
+      <td style="font-size:12px">${d.arbTraitant||'—'}</td>
+      <td style="font-size:11px;color:var(--txt2)">${d.equipe||'—'}</td>
+      <td><span style="font-family:'DM Mono',monospace;font-size:11px;background:var(--bg2);padding:2px 6px;border-radius:4px">${d.nbActivites}</span></td>
+      <td>
+        <button class="btn btn-ghost" style="padding:4px 8px;font-size:11px" onclick="event.stopPropagation();openModal('${d.numDemande}')">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  renderPagi(total);
+}
+
+function renderPagi(total){
+  const pages=Math.ceil(total/PAGE);
+  const c=document.getElementById('p-btns');
+  let h=`<button class="pbtn" onclick="gotoPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+  const start=Math.max(1,currentPage-2),end=Math.min(pages,currentPage+2);
+  if(start>1) h+=`<button class="pbtn" onclick="gotoPage(1)">1</button><span style="padding:0 4px;color:var(--txt3)">…</span>`;
+  for(let p=start;p<=end;p++) h+=`<button class="pbtn ${p===currentPage?'on':''}" onclick="gotoPage(${p})">${p}</button>`;
+  if(end<pages) h+=`<span style="padding:0 4px;color:var(--txt3)">…</span><button class="pbtn" onclick="gotoPage(${pages})">${pages}</button>`;
+  h+=`<button class="pbtn" onclick="gotoPage(${currentPage+1})" ${currentPage===pages?'disabled':''}>›</button>`;
+  c.innerHTML=h;
+}
+function gotoPage(p){ const total=filtered.length; const pages=Math.ceil(total/PAGE); if(p<1||p>pages) return; currentPage=p; renderTable(); }
+
+// =====================================================
+// MODAL
+// =====================================================
+function openModal(num){
+  const d=joined.find(r=>r.numDemande===num);
+  if(!d) return;
+  document.getElementById('m-title').textContent='Dossier '+d.numDemande;
+  document.getElementById('m-sub').innerHTML=`<span class="badge ${getEtatClass(d.etat)}">${d.etat||'—'}</span> · ${d.type} · ${d.libActe}`;
+
+  // Build activities HTML
+  const actColors=['#2563EB','#7C3AED','#D97706','#D73E3E','#16A34A','#FF7900'];
+  const actsHtml = d.activites.length ? d.activites.map((a,i)=>{
+    const dur = a.dateDebut&&a.dateFin ? Math.round((a.dateFin-a.dateDebut)/86400000) : null;
+    return `<div class="act-item">
+      <div class="act-num" style="background:${actColors[i%actColors.length]}20;color:${actColors[i%actColors.length]}">${i+1}</div>
+      <div class="act-body">
+        <div class="act-name">${a.libActivite||'—'}</div>
+        <div class="act-meta">
+          <span>📅 Début : ${fmtDate(a.dateDebut)} ${a.heureDebut}</span>
+          <span>🏁 Fin : ${fmtDate(a.dateFin)} ${a.heureFin}</span>
+          ${dur!==null?`<span>⏱ ${dur}j</span>`:''}
+        </div>
+        <div class="act-meta" style="margin-top:4px">
+          <span>👤 ${a.prenomARH} ${a.nomARH} <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--txt3)">${a.cuid}</span></span>
+          <span>🏢 ${a.equipe}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('') : '<div style="color:var(--txt3);font-size:12px;padding:8px 0">Aucune activité enregistrée</div>';
+
+  document.getElementById('m-body').innerHTML=`
+    <div class="msec">
+      <div class="msec-title">Informations demande</div>
+      <div class="mgrid">
+        <div class="mfield"><label>Num demande</label><div class="v mono">${d.numDemande}</div></div>
+        <div class="mfield"><label>Type demande</label><div class="v">${d.type}</div></div>
+        <div class="mfield"><label>État</label><div class="v"><span class="badge ${getEtatClass(d.etat)}">${d.etat||'—'}</span></div></div>
+        <div class="mfield"><label>Date création</label><div class="v mono">${fmtDate(d.dateCreation)}</div></div>
+        <div class="mfield"><label>Lib acte</label><div class="v">${d.libActe}</div></div>
+        <div class="mfield"><label>Ancienneté</label><div class="v" style="color:${d.age>90?'var(--red)':d.age>30?'var(--amb)':'var(--txt)'}">${d.age!==null?d.age+' jours':'—'}</div></div>
+      </div>
+      ${d.description?`<div style="margin-top:12px;padding:10px 12px;background:var(--bg2);border-radius:8px;font-size:12px;color:var(--txt2);line-height:1.6">${d.description}</div>`:''}
+    </div>
+    <div class="msec">
+      <div class="msec-title">Historique des activités (${d.nbActivites})</div>
+      <div class="actl">${actsHtml}</div>
+    </div>
+  `;
+  document.getElementById('moverlay').classList.add('open');
+}
+function closeMod(e){ if(e.target===document.getElementById('moverlay')) document.getElementById('moverlay').classList.remove('open'); }
+
+// =====================================================
+// ACTIVITES VIEW
+// =====================================================
+function drawActivitesView(){
+  dc('act');
+  const acts={};
+  filtered.forEach(d=>d.activites.forEach(a=>{ if(a.libActivite) acts[a.libActivite]=(acts[a.libActivite]||0)+1; }));
+  const sorted=Object.entries(acts).sort((a,b)=>b[1]-a[1]);
+  const labels=sorted.map(([l])=>l.replace(/^\d+:/,'').trim().slice(0,40));
+  const data=sorted.map(([,v])=>v);
+  const colors=['#FF7900','#2563EB','#D97706','#7C3AED','#D73E3E','#16A34A','#0891B2','#059669'];
+  charts['act']=new Chart(document.getElementById('ch-act').getContext('2d'),{
+    type:'bar',
+    data:{labels,datasets:[{data,backgroundColor:colors.concat(colors),borderRadius:6,borderSkipped:false}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{x:{ticks:{font:{size:11}},grid:{color:'rgba(0,0,0,0.04)'}},y:{ticks:{font:{size:11}},grid:{display:false}}}
+    }
+  });
+
+  // ARH charge
+  const arhData={};
+  filtered.forEach(d=>d.activites.forEach(a=>{
+    const k=`${a.prenomARH} ${a.nomARH}`.trim();
+    if(!k) return;
+    if(!arhData[k]) arhData[k]={total:0,equipe:a.equipe};
+    arhData[k].total++;
+  }));
+  const sorted2=Object.entries(arhData).sort((a,b)=>b[1].total-a[1].total).slice(0,8);
+  const maxA=sorted2[0]?.[1].total||1;
+  const iniColors=['#FF7900','#2563EB','#D97706','#7C3AED','#D73E3E','#16A34A','#0891B2','#059669'];
+  document.getElementById('arh-charge').innerHTML=sorted2.map(([nom,{total,equipe}],i)=>{
+    const ini=nom.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+    return `<div class="arh-card" style="margin-bottom:8px">
+      <div class="arh-head">
+        <div class="arh-avatar" style="background:${iniColors[i%8]}20;color:${iniColors[i%8]}">${ini}</div>
+        <div>
+          <div class="arh-name">${nom}</div>
+          <div class="arh-sub">${equipe}</div>
+        </div>
+        <div style="margin-left:auto;font-family:'DM Mono',monospace;font-size:13px;font-weight:500">${total}</div>
+      </div>
+      <div class="pbar"><div class="pfill" style="width:${Math.round(total/maxA*100)}%;background:${iniColors[i%8]}"></div></div>
+    </div>`;
+  }).join('');
+
+  // Matrice
+  const etatsByDem = {};
+  filtered.slice(0,50).forEach(d=>{
+    etatsByDem[d.numDemande]={etat:d.etat, acts:d.activites.map(a=>a.libActivite.replace(/^\d+:/,'').trim().slice(0,20))};
+  });
+  const allActTypes=[...new Set(filtered.flatMap(d=>d.activites.map(a=>a.libActivite.replace(/^\d+:/,'').trim().slice(0,20))))].slice(0,6);
+  if(allActTypes.length){
+    let tbl=`<table style="font-size:11px;min-width:500px"><thead><tr><th style="padding:6px 10px;background:var(--sur2);border-bottom:1px solid var(--bdr);text-align:left">Dossier</th><th style="padding:6px 10px;background:var(--sur2);border-bottom:1px solid var(--bdr)">État</th>`;
+    allActTypes.forEach(a=>{ tbl+=`<th style="padding:6px 10px;background:var(--sur2);border-bottom:1px solid var(--bdr);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a}</th>`; });
+    tbl+='</tr></thead><tbody>';
+    Object.entries(etatsByDem).forEach(([num,{etat,acts}])=>{
+      tbl+=`<tr style="border-bottom:1px solid var(--bdr)"><td style="padding:6px 10px;font-family:'DM Mono',monospace;color:var(--or);font-weight:500">${num}</td><td style="padding:6px 10px;text-align:center"><span class="badge ${getEtatClass(etat)}" style="font-size:10px">${etat||'—'}</span></td>`;
+      allActTypes.forEach(a=>{
+        const has=acts.includes(a);
+        tbl+=`<td style="padding:6px 10px;text-align:center;font-size:14px">${has?'<span style="color:var(--grn)">✓</span>':'<span style="color:var(--bdr2)">·</span>'}</td>`;
+      });
+      tbl+='</tr>';
+    });
+    tbl+='</tbody></table>';
+    document.getElementById('matrice-act').innerHTML=tbl;
+  }
+}
+
+// =====================================================
+// ETATS VIEW
+// =====================================================
+function drawEtatsView(){
+  dc('delai'); dc('chrono');
+
+  // Avg duration by act type
+  const durByAct={};
+  filtered.forEach(d=>d.activites.forEach(a=>{
+    if(!a.dateDebut||!a.dateFin) return;
+    const dur=Math.round((a.dateFin-a.dateDebut)/86400000);
+    if(dur<0||dur>365) return;
+    const k=a.libActivite.replace(/^\d+:/,'').trim().slice(0,30);
+    if(!durByAct[k]) durByAct[k]=[];
+    durByAct[k].push(dur);
+  }));
+  const durLabels=Object.keys(durByAct);
+  const durData=durLabels.map(k=>Math.round(durByAct[k].reduce((a,b)=>a+b,0)/durByAct[k].length));
+  charts['delai']=new Chart(document.getElementById('ch-delai').getContext('2d'),{
+    type:'bar',
+    data:{labels:durLabels,datasets:[{label:'Délai moyen (jours)',data:durData,backgroundColor:'rgba(37,99,235,0.18)',borderColor:'#2563EB',borderWidth:2,borderRadius:6,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{y:{ticks:{callback:v=>v+'j',font:{size:11}},grid:{color:'rgba(0,0,0,0.04)'}},x:{ticks:{font:{size:11}},grid:{display:false}}}
+    }
+  });
+
+  // Chronologie mensuelle
+  const monthly={};
+  filtered.forEach(d=>d.activites.forEach(a=>{
+    const dt=a.dateFin||a.dateDebut; if(!dt) return;
+    const k=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');
+    monthly[k]=(monthly[k]||0)+1;
+  }));
+  const mLabels=Object.keys(monthly).sort();
+  const mData=mLabels.map(k=>monthly[k]);
+  charts['chrono']=new Chart(document.getElementById('ch-chrono').getContext('2d'),{
+    type:'line',
+    data:{labels:mLabels,datasets:[{label:'Activités terminées',data:mData,borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,0.08)',tension:0.4,fill:true,pointBackgroundColor:'#7C3AED',pointRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{y:{ticks:{font:{size:11}},grid:{color:'rgba(0,0,0,0.04)'}},x:{ticks:{font:{size:11}},grid:{display:false}}}
+    }
+  });
+
+  // Sans activité
+  const sans=filtered.filter(d=>d.nbActivites===0).slice(0,8);
+  document.getElementById('sans-act-list').innerHTML=sans.length
+    ? sans.map(d=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bdr);font-size:12px">
+        <span class="cell-id" onclick="openModal('${d.numDemande}')" style="cursor:pointer">${d.numDemande}</span>
+        <span class="badge ${getEtatClass(d.etat)}">${d.etat}</span>
+        <span style="color:var(--txt3);font-family:'DM Mono',monospace;font-size:11px">${fmtDate(d.dateCreation)}</span>
+      </div>`).join('')
+    : '<div style="color:var(--txt3);font-size:12px;padding:8px 0">Aucun dossier sans activité 👍</div>';
+}
+
+// =====================================================
+// NAV
+// =====================================================
+function nav(el, view){
+  document.querySelectorAll('.nav-it').forEach(n=>n.classList.remove('on'));
+  el.classList.add('on');
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  document.getElementById('view-'+view).classList.add('on');
+  if(joined.length>0){
+    if(view==='dashboard'){ drawEvolChart(); drawEtatChart(); drawTopActivites(); drawAnciennete(); drawTopARH(); }
+    if(view==='table') renderTable();
+    if(view==='activites') drawActivitesView();
+    if(view==='etats') drawEtatsView();
+  }
+}
+
+// =====================================================
+// EXPORT CSV
+// =====================================================
+function exportCSV(){
+  if(!filtered.length){ alert('Aucune donnée à exporter'); return; }
+  const rows=filtered.map(d=>[
+    d.numDemande,d.type,d.etat,d.libActe,fmtDate(d.dateCreation),d.age!==null?d.age:'',
+    d.dernActivite,fmtDate(d.dateDernActivite),d.arbTraitant,d.equipe,d.nbActivites,d.description
+  ]);
+  const csv=[
+    ['Num demande','Type','Etat','Lib acte','Date creation','Age (jours)','Derniere activite','Date derniere activite','ARH traitant','Equipe','Nb activites','Description'].join(';'),
+    ...rows.map(r=>r.join(';'))
+  ].join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download='rejets_cpam_'+new Date().toISOString().split('T')[0]+'.csv';
+  a.click();
+}
+</script>
+</body>
+</html>
