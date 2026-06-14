@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suivi Rejets CPAM — Orange</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --or:#FF7900;--or2:#CC5200;--or-bg:#FFF3E8;
+  --bg:#F2F1ED;--bg2:#ECEAE4;--sur:#FFFFFF;--sur2:#F8F7F4;
+  --txt:#18180F;--txt2:#6A6A5E;--txt3:#A0A093;
+  --bdr:rgba(0,0,0,0.07);--bdr2:rgba(0,0,0,0.13);
+  --red:#D73E3E;--red-bg:#FEF2F2;
+  --amb:#D97706;--amb-bg:#FFFBEB;
+  --grn:#16A34A;--grn-bg:#F0FDF4;
+  --blu:#2563EB;--blu-bg:#EFF6FF;
+  --pur:#7C3AED;--pur-bg:#F5F3FF;
+  --r:10px;--rl:14px;
+  /* FORCLUSION COLORS */
+  --forc-crit:#B91C1C;--forc-crit-bg:#FFF1F1;--forc-crit-bdr:rgba(185,28,28,0.25);
+  --forc-urg:#C2410C;--forc-urg-bg:#FFF7ED;--forc-urg-bdr:rgba(194,65,12,0.22);
+  --forc-warn:#CA8A04;--forc-warn-bg:#FEFCE8;--forc-warn-bdr:rgba(202,138,4,0.22);
+  --forc-ok:#15803D;--forc-ok-bg:#F0FDF4;--forc-ok-bdr:rgba(21,128,61,0.2);
+  --forc-dead:#6B7280;--forc-dead-bg:#F9FAFB;--forc-dead-bdr:rgba(107,114,128,0.2);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5;min-height:100vh}
+.shell{display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.side{width:232px;background:var(--txt);color:#fff;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100}
+.side-logo{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,0.07)}
+.side-logo-row{display:flex;align-items:center;gap:10px}
+.side-orb{width:34px;height:34px;border-radius:50%;background:var(--or);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:17px;flex-shrink:0}
+.side-brand{font-weight:600;font-size:15px;letter-spacing:-.3px}
+.side-sub{font-size:10px;color:rgba(255,255,255,0.3);margin-top:2px;font-family:'DM Mono',monospace;letter-spacing:.5px}
+.side-nav{padding:12px 10px;flex:1;overflow-y:auto}
+.nav-lbl{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,0.25);padding:0 8px;margin:14px 0 5px}
+.nav-it{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;color:rgba(255,255,255,0.5);font-size:13px;cursor:pointer;transition:all .15s;margin-bottom:2px;user-select:none}
+.nav-it svg{width:15px;height:15px;flex-shrink:0;opacity:.7}
+.nav-it:hover{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.85)}
+.nav-it.on{background:rgba(255,121,0,0.16);color:var(--or)}
+.nav-it.on svg{opacity:1}
+.side-badge{display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:9px;font-weight:600;margin-left:auto;font-family:'DM Mono',monospace}
+.side-badge.ok{background:rgba(22,163,74,0.25);color:#4ade80}
+.side-badge.warn{background:rgba(217,119,6,0.25);color:#fbbf24}
+.side-badge.crit{background:rgba(185,28,28,0.3);color:#fca5a5;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.side-foot{padding:12px 18px;border-top:1px solid rgba(255,255,255,0.07);font-size:10px;color:rgba(255,255,255,0.2);font-family:'DM Mono',monospace;line-height:1.8}
+
+/* MAIN */
+.main{margin-left:232px;flex:1;display:flex;flex-direction:column}
+.topbar{background:var(--sur);border-bottom:1px solid var(--bdr);padding:12px 26px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.topbar-l{display:flex;flex-direction:column}
+.topbar-title{font-size:16px;font-weight:600;letter-spacing:-.3px}
+.topbar-sub{font-size:11px;color:var(--txt2);margin-top:1px}
+.topbar-r{display:flex;align-items:center;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:'DM Sans',sans-serif;white-space:nowrap}
+.btn svg{width:13px;height:13px}
+.btn-ghost{background:transparent;color:var(--txt2);border:1px solid var(--bdr2)}
+.btn-ghost:hover{background:var(--bg);color:var(--txt)}
+.btn-or{background:var(--or);color:#fff}
+.btn-or:hover{background:var(--or2)}
+.btn-red{background:var(--forc-crit-bg);color:var(--forc-crit);border:1px solid var(--forc-crit-bdr)}
+.btn-red:hover{background:#fee2e2}
+.btn-amb{background:var(--forc-urg-bg);color:var(--forc-urg);border:1px solid var(--forc-urg-bdr)}
+.content{padding:20px 26px;flex:1}
+
+/* FORCLUSION BANNER */
+.forc-banner{border-radius:var(--rl);padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:14px;border:1.5px solid}
+.forc-banner.crit{background:var(--forc-crit-bg);border-color:var(--forc-crit-bdr)}
+.forc-banner.urg{background:var(--forc-urg-bg);border-color:var(--forc-urg-bdr)}
+.forc-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
+.forc-banner-txt{flex:1}
+.forc-banner-title{font-size:13px;font-weight:600}
+.forc-banner-sub{font-size:12px;opacity:.75;margin-top:2px}
+
+/* FORCLUSION PILL */
+.fpill{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;border:1px solid;white-space:nowrap}
+.fpill.crit{background:var(--forc-crit-bg);color:var(--forc-crit);border-color:var(--forc-crit-bdr)}
+.fpill.urg{background:var(--forc-urg-bg);color:var(--forc-urg);border-color:var(--forc-urg-bdr)}
+.fpill.warn{background:var(--forc-warn-bg);color:var(--forc-warn);border-color:var(--forc-warn-bdr)}
+.fpill.ok{background:var(--forc-ok-bg);color:var(--forc-ok);border-color:var(--forc-ok-bdr)}
+.fpill.dead{background:var(--forc-dead-bg);color:var(--forc-dead);border-color:var(--forc-dead-bdr);text-decoration:line-through}
+
+/* IMPORT */
+.import-zone{background:var(--sur);border:1.5px dashed var(--bdr2);border-radius:var(--rl);padding:36px 28px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+.import-zone:hover,.import-zone.drag{border-color:var(--or);background:var(--or-bg)}
+.import-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.import-icon{width:44px;height:44px;margin:0 auto 12px;background:var(--bg2);border-radius:11px;display:flex;align-items:center;justify-content:center}
+.import-icon svg{width:22px;height:22px;color:var(--txt2)}
+.import-title{font-size:14px;font-weight:600;margin-bottom:5px}
+.import-sub{font-size:12px;color:var(--txt2)}
+.import-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.import-card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:18px}
+.import-card.loaded{border-color:rgba(22,163,74,0.35)}
+.import-card-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.import-card-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.import-card-icon.f1{background:var(--or-bg)}
+.import-card-icon.f2{background:var(--blu-bg)}
+.import-card-icon svg{width:17px;height:17px}
+.import-card-label{font-size:13px;font-weight:600}
+.import-card-sub{font-size:11px;color:var(--txt2);margin-top:1px}
+.import-status{display:flex;align-items:center;gap:6px;font-size:12px;padding:6px 10px;border-radius:7px;margin-top:8px}
+.import-status.idle{background:var(--bg2);color:var(--txt2)}
+.import-status.ok{background:var(--grn-bg);color:var(--grn)}
+.import-status.err{background:var(--red-bg);color:var(--red)}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dot.idle{background:var(--txt3)}.dot.ok{background:var(--grn)}.dot.err{background:var(--red)}
+
+/* FILTERS */
+.fbar{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:13px 16px;margin-bottom:16px;display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.fg{display:flex;flex-direction:column;gap:3px}
+.flbl{font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px}
+.fsel,.finp{border:1px solid var(--bdr2);border-radius:7px;padding:5px 8px;font-size:12px;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);outline:none;transition:border-color .15s;cursor:pointer}
+.fsel:focus,.finp:focus{border-color:var(--or)}
+.finp{width:160px}
+.fdiv{width:1px;height:30px;background:var(--bdr);margin-bottom:1px}
+
+/* KPIs */
+.kgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:11px;margin-bottom:16px}
+.kcard{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:14px 16px;position:relative;overflow:hidden}
+.kcard.alert-crit{border-color:var(--forc-crit-bdr);background:var(--forc-crit-bg)}
+.kcard.alert-urg{border-color:var(--forc-urg-bdr);background:var(--forc-urg-bg)}
+.klbl{font-size:9px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;line-height:1.3}
+.kval{font-size:24px;font-weight:600;letter-spacing:-1px;font-family:'DM Mono',monospace;line-height:1}
+.kval.r{color:var(--forc-crit)}.kval.a{color:var(--amb)}.kval.g{color:var(--grn)}.kval.b{color:var(--blu)}.kval.o{color:var(--or)}.kval.pu{color:var(--pur)}
+.ksub{margin-top:5px;font-size:10px;color:var(--txt2)}
+.kacc{position:absolute;bottom:0;left:0;right:0;height:3px}
+.kacc.r{background:var(--forc-crit)}.kacc.a{background:var(--amb)}.kacc.g{background:var(--grn)}.kacc.b{background:var(--blu)}.kacc.o{background:var(--or)}.kacc.pu{background:var(--pur)}
+
+/* CHARTS */
+.crow{display:grid;grid-template-columns:3fr 2fr;gap:14px;margin-bottom:16px}
+.crow3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:16px 18px}
+.card-h{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+.card-title{font-size:13px;font-weight:600;letter-spacing:-.2px}
+.card-sub{font-size:11px;color:var(--txt2);margin-top:2px}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:500;white-space:nowrap}
+.b-r{background:var(--red-bg);color:#991B1B}.b-a{background:var(--amb-bg);color:#92400E}
+.b-g{background:var(--grn-bg);color:#166534}.b-b{background:var(--blu-bg);color:#1E40AF}
+.b-p{background:var(--pur-bg);color:#5B21B6}.b-gray{background:var(--bg2);color:var(--txt2)}
+
+/* TABLE */
+.tcard{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden}
+.thead-bar{padding:12px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.tabs{display:flex;gap:3px}
+.tab{padding:5px 11px;font-size:12px;font-weight:500;color:var(--txt2);cursor:pointer;border-radius:7px;transition:all .15s}
+.tab.on{background:var(--or-bg);color:var(--or)}
+.tab:hover:not(.on){background:var(--bg)}
+.tab.tab-crit.on{background:var(--forc-crit-bg);color:var(--forc-crit)}
+.tab.tab-urg.on{background:var(--forc-urg-bg);color:var(--forc-urg)}
+.tab.tab-dead.on{background:var(--forc-dead-bg);color:var(--forc-dead)}
+table{width:100%;border-collapse:collapse}
+thead th{padding:8px 12px;text-align:left;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;background:var(--sur2);border-bottom:1px solid var(--bdr);white-space:nowrap;cursor:pointer;user-select:none}
+thead th:hover{color:var(--txt)}
+thead th:first-child{padding-left:16px}
+thead th:last-child{padding-right:16px}
+tbody tr{border-bottom:1px solid var(--bdr);transition:background .1s;cursor:pointer}
+tbody tr:hover{background:var(--sur2)}
+tbody tr:last-child{border-bottom:none}
+tbody tr.row-crit{background:rgba(185,28,28,0.03)}
+tbody tr.row-urg{background:rgba(194,65,12,0.03)}
+tbody tr.row-dead{background:rgba(107,114,128,0.04);opacity:.65}
+tbody td{padding:10px 12px;font-size:12px;vertical-align:middle}
+tbody td:first-child{padding-left:16px}
+tbody td:last-child{padding-right:16px}
+.mono{font-family:'DM Mono',monospace}
+.cell-id{font-family:'DM Mono',monospace;font-size:11px;font-weight:600;color:var(--or)}
+
+/* FORCLUSION BAR */
+.forc-bar-wrap{display:flex;align-items:center;gap:6px;min-width:120px}
+.forc-bar-bg{flex:1;height:5px;border-radius:5px;background:var(--bg2);overflow:hidden}
+.forc-bar-fill{height:100%;border-radius:5px;transition:width .3s}
+.forc-bar-pct{font-size:10px;font-family:'DM Mono',monospace;font-weight:500;width:28px;text-align:right;flex-shrink:0}
+
+/* STAT ROWS */
+.stat-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.stat-row-lbl{font-size:11px;color:var(--txt2);width:120px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stat-row-bar{flex:1}.stat-row-val{font-size:11px;font-weight:500;font-family:'DM Mono',monospace;text-align:right;width:44px;flex-shrink:0}
+.pbar{height:4px;border-radius:4px;background:var(--bg2);overflow:hidden;margin-top:3px}
+.pfill{height:100%;border-radius:4px}
+
+/* PAGINATION */
+.pagi{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--bdr);font-size:11px;color:var(--txt2)}
+.pbtns{display:flex;gap:3px}
+.pbtn{min-width:26px;height:26px;border-radius:6px;border:1px solid var(--bdr2);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;font-family:'DM Sans',sans-serif;color:var(--txt2);padding:0 5px;transition:all .1s}
+.pbtn:hover:not(:disabled){background:var(--bg)}
+.pbtn.on{background:var(--or);color:#fff;border-color:var(--or)}
+.pbtn:disabled{opacity:.35;cursor:not-allowed}
+
+/* MODAL */
+.moverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.42);z-index:300;align-items:center;justify-content:center;padding:20px}
+.moverlay.open{display:flex}
+.modal{background:var(--sur);border-radius:var(--rl);width:680px;max-height:88vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,0.18)}
+.mhead{padding:16px 22px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--sur);z-index:1}
+.mclose{width:28px;height:28px;border-radius:7px;background:var(--bg);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--txt2);font-size:16px;line-height:1}
+.mbody{padding:20px 22px}
+.msec{margin-bottom:18px}
+.msec-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--txt3);margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--bdr)}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mfield label{font-size:10px;color:var(--txt3);display:block;margin-bottom:2px}
+.mfield .v{font-size:13px;font-weight:500}
+.mfield .v.mono{font-family:'DM Mono',monospace;font-size:12px}
+
+/* FORCLUSION GAUGE */
+.forc-gauge{background:var(--bg2);border-radius:8px;padding:14px 16px;margin-bottom:14px}
+.forc-gauge-title{font-size:11px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.forc-gauge-bar{height:10px;border-radius:10px;background:var(--bg);overflow:hidden;margin-bottom:6px;position:relative}
+.forc-gauge-fill{height:100%;border-radius:10px;transition:width .5s}
+.forc-gauge-markers{position:relative;height:16px;margin-bottom:4px}
+.forc-gauge-marker{position:absolute;top:0;font-size:9px;color:var(--txt3);transform:translateX(-50%)}
+.forc-gauge-marker span{display:block;width:1px;height:8px;background:var(--txt3);margin:0 auto 1px}
+.forc-stats{display:flex;justify-content:space-between;font-size:11px;margin-top:4px}
+
+/* ACTIVITY ITEMS */
+.act-item{display:grid;grid-template-columns:auto 1fr;gap:12px;padding:9px 0;border-bottom:1px solid var(--bdr)}
+.act-item:last-child{border-bottom:none}
+.act-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0;margin-top:2px}
+.act-meta{display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--txt2);margin-top:3px}
+
+.view{display:none}.view.on{display:block}
+
+/* ALERT MANAGER VIEW */
+.alert-section{margin-bottom:20px}
+.alert-section-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-radius:var(--r);margin-bottom:8px;border:1.5px solid}
+.alert-section-head.crit{background:var(--forc-crit-bg);border-color:var(--forc-crit-bdr)}
+.alert-section-head.urg{background:var(--forc-urg-bg);border-color:var(--forc-urg-bdr)}
+.alert-section-head.warn{background:var(--forc-warn-bg);border-color:var(--forc-warn-bdr)}
+.alert-section-head.dead{background:var(--forc-dead-bg);border-color:var(--forc-dead-bdr)}
+
+@media(max-width:1300px){.kgrid{grid-template-columns:repeat(3,1fr)}.crow{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- SIDEBAR -->
+<aside class="side">
+  <div class="side-logo">
+    <div class="side-logo-row">
+      <div class="side-orb">O</div>
+      <div>
+        <div class="side-brand">Orange</div>
+        <div class="side-sub">SUIVI REJETS CPAM</div>
+      </div>
+    </div>
+  </div>
+  <nav class="side-nav">
+    <div class="nav-lbl">Import</div>
+    <div class="nav-it on" onclick="nav(this,'import')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M8 12l4-4 4 4M12 8v8"/></svg>
+      Charger les fichiers
+      <span class="side-badge warn" id="nb-files">0/2</span>
+    </div>
+    <div class="nav-lbl">Tableau de bord</div>
+    <div class="nav-it" onclick="nav(this,'dashboard')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Vue globale
+    </div>
+    <div class="nav-it" onclick="nav(this,'table')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 10h18M3 6h18M3 14h18M3 18h18"/></svg>
+      Tous les dossiers
+    </div>
+    <div class="nav-lbl">⚠ Forclusion</div>
+    <div class="nav-it" onclick="nav(this,'alertes')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Alertes &amp; priorités
+      <span class="side-badge crit" id="nb-alertes">—</span>
+    </div>
+    <div class="nav-it" onclick="nav(this,'manager')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      Rapport managers
+    </div>
+    <div class="nav-it" onclick="nav(this,'nettoyage')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+      Nettoyage forclos
+    </div>
+    <div class="nav-lbl">Analyse</div>
+    <div class="nav-it" onclick="nav(this,'activites')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Activités ARH
+    </div>
+    <div class="nav-lbl">Export</div>
+    <div class="nav-it" onclick="exportCSV('filtered')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 12l-4 4-4-4M12 8v8"/></svg>
+      Exporter CSV
+    </div>
+  </nav>
+  <div class="side-foot" id="side-foot">Aucune donnée chargée<br>Importez les 2 fichiers</div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <header class="topbar">
+    <div class="topbar-l">
+      <div class="topbar-title" id="topbar-title">Suivi des Rejets CPAM</div>
+      <div class="topbar-sub" id="topbar-sub">Importez vos fichiers Excel pour démarrer</div>
+    </div>
+    <div class="topbar-r" id="topbar-r">
+      <button class="btn btn-ghost" onclick="resetFilters()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15"/></svg>
+        Réinitialiser
+      </button>
+      <button class="btn btn-or" onclick="exportCSV('filtered')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 12l-4 4-4-4M12 8v8"/></svg>
+        Exporter
+      </button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- ==================== IMPORT ==================== -->
+    <div class="view on" id="view-import">
+      <div style="max-width:680px;margin:0 auto">
+        <div style="margin-bottom:20px">
+          <h2 style="font-size:17px;font-weight:600;margin-bottom:6px">Chargement des données</h2>
+          <p style="font-size:13px;color:var(--txt2)">Importez vos deux exports Excel. La jointure sur <code style="background:var(--bg2);padding:1px 5px;border-radius:4px;font-size:12px">Num demande</code> est automatique. Le délai de forclusion de <strong>823 jours</strong> (2 ans 3 mois) est calculé à partir de la date de création.</p>
+        </div>
+        <div class="import-grid">
+          <div class="import-card" id="card-f1">
+            <div class="import-card-head">
+              <div class="import-card-icon f1"><svg fill="none" stroke="var(--or)" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+              <div><div class="import-card-label">Fichier Demandes</div><div class="import-card-sub">Num demande · État · Description · Date création · Lib acte</div></div>
+            </div>
+            <div class="import-zone" id="zone-f1" ondragover="dragOver(event,'zone-f1')" ondragleave="dragLeave('zone-f1')" ondrop="dropFile(event,'f1')">
+              <input type="file" accept=".xlsx,.xls,.csv" onchange="loadFile(this,'f1')">
+              <div style="pointer-events:none">
+                <div class="import-icon"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M8 12l4-4 4 4M12 8v8"/></svg></div>
+                <div class="import-title">Glisser-déposer ou cliquer</div>
+                <div class="import-sub">.xlsx · .xls · .csv</div>
+              </div>
+            </div>
+            <div class="import-status idle" id="status-f1"><div class="dot idle" id="dot-f1"></div><span id="msg-f1">En attente…</span></div>
+          </div>
+          <div class="import-card" id="card-f2">
+            <div class="import-card-head">
+              <div class="import-card-icon f2"><svg fill="none" stroke="var(--blu)" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+              <div><div class="import-card-label">Fichier Activités</div><div class="import-card-sub">Num demande · Lib activité · Dates · ARH traitant · Équipe</div></div>
+            </div>
+            <div class="import-zone" id="zone-f2" ondragover="dragOver(event,'zone-f2')" ondragleave="dragLeave('zone-f2')" ondrop="dropFile(event,'f2')">
+              <input type="file" accept=".xlsx,.xls,.csv" onchange="loadFile(this,'f2')">
+              <div style="pointer-events:none">
+                <div class="import-icon"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M8 12l4-4 4 4M12 8v8"/></svg></div>
+                <div class="import-title">Glisser-déposer ou cliquer</div>
+                <div class="import-sub">.xlsx · .xls · .csv</div>
+              </div>
+            </div>
+            <div class="import-status idle" id="status-f2"><div class="dot idle" id="dot-f2"></div><span id="msg-f2">En attente…</span></div>
+          </div>
+        </div>
+        <div id="import-ready" style="display:none">
+          <div style="background:var(--grn-bg);border:1px solid rgba(22,163,74,0.3);border-radius:var(--r);padding:14px 18px;display:flex;align-items:center;gap:12px">
+            <svg fill="none" stroke="var(--grn)" stroke-width="2" viewBox="0 0 24 24" style="width:20px;height:20px;flex-shrink:0"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--grn)">Fichiers chargés et jointurés</div><div style="font-size:12px;color:var(--txt2);margin-top:2px" id="join-info">—</div></div>
+            <button class="btn btn-or" onclick="nav(document.querySelectorAll('.nav-it')[2],'dashboard')">Tableau de bord →</button>
+          </div>
+        </div>
+        <div id="col-preview" style="display:none;margin-top:16px">
+          <div style="font-size:11px;font-weight:600;margin-bottom:8px;color:var(--txt2)">COLONNES DÉTECTÉES</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="col-preview-inner"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== DASHBOARD ==================== -->
+    <div class="view" id="view-dashboard">
+      <div id="dash-banners"></div>
+      <div class="fbar">
+        <div class="fg"><div class="flbl">État demande</div><select class="fsel" id="f-etat" onchange="applyFilters()"><option value="">Tous</option></select></div>
+        <div class="fg"><div class="flbl">Période création</div><select class="fsel" id="f-periode" onchange="applyFilters()"><option value="">Toute période</option></select></div>
+        <div class="fg"><div class="flbl">Forclusion</div>
+          <select class="fsel" id="f-forc" onchange="applyFilters()">
+            <option value="">Tous</option>
+            <option value="crit">🔴 Critique (&lt; 30j)</option>
+            <option value="urg">🟠 Urgent (&lt; 6 mois)</option>
+            <option value="warn">🟡 Vigilance (6–12 mois)</option>
+            <option value="ok">🟢 OK (&gt; 12 mois)</option>
+            <option value="dead">⚫ Forclos</option>
+          </select>
+        </div>
+        <div class="fg"><div class="flbl">ARH traitant</div><select class="fsel" id="f-arh" onchange="applyFilters()"><option value="">Tous</option></select></div>
+        <div class="fdiv"></div>
+        <div class="fg"><div class="flbl">Recherche</div>
+          <div style="position:relative"><input type="text" class="finp" id="f-search" placeholder="Num demande…" oninput="applyFilters()">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:12px;height:12px;position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--txt3)"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div>
+        </div>
+      </div>
+      <div class="kgrid">
+        <div class="kcard"><div class="klbl">Total dossiers actifs</div><div class="kval b" id="k-total">—</div><div class="ksub" id="k-total-sub">—</div><div class="kacc b"></div></div>
+        <div class="kcard alert-crit" id="kc-crit"><div class="klbl">🔴 Critique &lt; 30j</div><div class="kval r" id="k-crit">—</div><div class="ksub">Forclusion imminente</div><div class="kacc r"></div></div>
+        <div class="kcard alert-urg" id="kc-urg"><div class="klbl">🟠 Urgent &lt; 6 mois</div><div class="kval a" id="k-urg">—</div><div class="ksub">À traiter en priorité</div><div class="kacc a"></div></div>
+        <div class="kcard"><div class="klbl">🟡 Vigilance 6–12 mois</div><div class="kval pu" id="k-warn">—</div><div class="ksub">Surveiller</div><div class="kacc pu"></div></div>
+        <div class="kcard"><div class="klbl">🟢 OK &gt; 12 mois</div><div class="kval g" id="k-ok">—</div><div class="ksub">Hors zone de risque</div><div class="kacc g"></div></div>
+        <div class="kcard"><div class="klbl">⚫ Forclos (perdus)</div><div class="kval" style="color:var(--txt3)" id="k-dead">—</div><div class="ksub">Délai dépassé</div><div class="kacc" style="background:var(--txt3)"></div></div>
+      </div>
+      <div class="crow">
+        <div class="card">
+          <div class="card-h"><div><div class="card-title">Évolution mensuelle des créations</div><div class="card-sub">Par mois · coloré par niveau de risque forclusion actuel</div></div></div>
+          <div style="position:relative;height:220px"><canvas id="ch-evol" role="img" aria-label="Évolution mensuelle">Données</canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div><div class="card-title">Répartition par état</div></div></div>
+          <div style="position:relative;height:180px"><canvas id="ch-etat" role="img" aria-label="États">États</canvas></div>
+          <div id="etat-legend" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--txt2)"></div>
+        </div>
+      </div>
+      <div class="crow3">
+        <div class="card" style="grid-column:span 2">
+          <div class="card-h"><div><div class="card-title">Horizon de forclusion — dossiers actifs</div><div class="card-sub">Distribution par tranche de délai restant</div></div></div>
+          <div style="position:relative;height:180px"><canvas id="ch-forc" role="img" aria-label="Forclusion">Forclusion</canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-title">Ancienneté dossiers</div></div>
+          <div id="anciennete"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TABLE ==================== -->
+    <div class="view" id="view-table">
+      <div class="fbar">
+        <div class="fg"><div class="flbl">État</div><select class="fsel" id="ft-etat" onchange="applyFilters()"><option value="">Tous</option></select></div>
+        <div class="fg"><div class="flbl">Forclusion</div>
+          <select class="fsel" id="ft-forc" onchange="applyFilters()">
+            <option value="">Tous</option>
+            <option value="crit">🔴 Critique</option>
+            <option value="urg">🟠 Urgent</option>
+            <option value="warn">🟡 Vigilance</option>
+            <option value="ok">🟢 OK</option>
+            <option value="dead">⚫ Forclos</option>
+          </select>
+        </div>
+        <div class="fg"><div class="flbl">ARH</div><select class="fsel" id="ft-arh" onchange="applyFilters()"><option value="">Tous</option></select></div>
+        <div class="fdiv"></div>
+        <div class="fg"><div class="flbl">Recherche</div>
+          <div style="position:relative"><input type="text" class="finp" id="ft-search" placeholder="Num demande…" oninput="applyFilters()" style="padding-left:28px">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:12px;height:12px;position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--txt3)"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div>
+        </div>
+      </div>
+      <div class="tcard">
+        <div class="thead-bar">
+          <div class="tabs">
+            <div class="tab on" onclick="setTab(this,'')">Tous <span id="tc-all" style="font-family:'DM Mono',monospace;font-size:10px"></span></div>
+            <div class="tab tab-crit" onclick="setTab(this,'crit')">🔴 Critique <span id="tc-crit" style="font-family:'DM Mono',monospace;font-size:10px"></span></div>
+            <div class="tab tab-urg" onclick="setTab(this,'urg')">🟠 Urgent <span id="tc-urg" style="font-family:'DM Mono',monospace;font-size:10px"></span></div>
+            <div class="tab" onclick="setTab(this,'warn')">🟡 Vigilance <span id="tc-warn" style="font-family:'DM Mono',monospace;font-size:10px"></span></div>
+            <div class="tab" onclick="setTab(this,'ok')">🟢 OK <span id="tc-ok" style="font-family:'DM Mono',monospace;font-size:10px"></span></div>
+            <div class="tab tab-dead" onclick="setTab(this,'dead')">⚫ Forclos <span id="tc-dead" style="font-family:'DM Mono',monospace;font-size:10px"></span></div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select class="fsel" id="t-sort" onchange="renderTable()" style="font-size:11px">
+              <option value="forc-asc">Forclusion ↑ (urgent d'abord)</option>
+              <option value="date-desc">Date créa. ↓</option>
+              <option value="date-asc">Date créa. ↑</option>
+              <option value="age-desc">Ancienneté ↓</option>
+            </select>
+            <span style="font-size:12px;color:var(--txt2)"><span id="t-count">—</span> dossiers</span>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr>
+              <th>Num demande</th>
+              <th>Type</th>
+              <th>État</th>
+              <th>Date création</th>
+              <th>Âge (j)</th>
+              <th>Date limite forclusion</th>
+              <th>Délai restant</th>
+              <th>Avancement forclusion</th>
+              <th>Dernière activité</th>
+              <th>ARH traitant</th>
+              <th></th>
+            </tr></thead>
+            <tbody id="t-body"></tbody>
+          </table>
+        </div>
+        <div class="pagi"><span id="p-info">—</span><div class="pbtns" id="p-btns"></div></div>
+      </div>
+    </div>
+
+    <!-- ==================== ALERTES ==================== -->
+    <div class="view" id="view-alertes">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <h2 style="font-size:16px;font-weight:600">Alertes forclusion</h2>
+          <p style="font-size:12px;color:var(--txt2);margin-top:2px">Dossiers classés par urgence. Délai légal : <strong>823 jours</strong> à partir de la date de création.</p>
+        </div>
+        <button class="btn btn-or" onclick="exportCSV('urgent')">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 12l-4 4-4-4M12 8v8"/></svg>
+          Exporter urgents (&lt; 6 mois)
+        </button>
+      </div>
+      <div id="alertes-content"></div>
+    </div>
+
+    <!-- ==================== MANAGER ==================== -->
+    <div class="view" id="view-manager">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <h2 style="font-size:16px;font-weight:600">Rapport managers — Dossiers à traiter dans les 6 mois</h2>
+          <p style="font-size:12px;color:var(--txt2);margin-top:2px">Dossiers dont la date limite de forclusion expire dans moins de 6 mois (180 jours). À partager avec les responsables d'équipe.</p>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost" onclick="printManager()">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Imprimer
+          </button>
+          <button class="btn btn-or" onclick="exportCSV('manager')">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 12l-4 4-4-4M12 8v8"/></svg>
+            Exporter pour managers
+          </button>
+        </div>
+      </div>
+      <div id="manager-content"></div>
+    </div>
+
+    <!-- ==================== NETTOYAGE ==================== -->
+    <div class="view" id="view-nettoyage">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <h2 style="font-size:16px;font-weight:600">Nettoyage — Dossiers forclos</h2>
+          <p style="font-size:12px;color:var(--txt2);margin-top:2px">Ces dossiers ont dépassé le délai de forclusion de 823 jours. Aucune récupération de fonds n'est possible. Ils peuvent être archivés ou clôturés.</p>
+        </div>
+        <button class="btn btn-red" onclick="exportCSV('dead')">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 12l-4 4-4-4M12 8v8"/></svg>
+          Exporter liste forclos
+        </button>
+      </div>
+      <div id="nettoyage-content"></div>
+    </div>
+
+    <!-- ==================== ACTIVITES ==================== -->
+    <div class="view" id="view-activites">
+      <div class="crow">
+        <div class="card">
+          <div class="card-h"><div><div class="card-title">Distribution des types d'activités</div><div class="card-sub">Par libellé</div></div></div>
+          <div style="position:relative;height:260px"><canvas id="ch-act" role="img" aria-label="Activités">Activités</canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-title">Charge par ARH</div></div>
+          <div id="arh-charge"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+</div>
+
+<!-- MODAL -->
+<div class="moverlay" id="moverlay" onclick="closeMod(event)">
+  <div class="modal">
+    <div class="mhead">
+      <div><div style="font-size:15px;font-weight:600" id="m-title">—</div><div style="font-size:11px;color:var(--txt2);margin-top:2px" id="m-sub">—</div></div>
+      <button class="mclose" onclick="document.getElementById('moverlay').classList.remove('open')">×</button>
+    </div>
+    <div class="mbody" id="m-body"></div>
+  </div>
+</div>
+
+<script>
+// ================================================================
+// CONSTANTS
+// ================================================================
+const FORC_DAYS = 823;        // délai de forclusion en jours
+const CRIT_DAYS = 30;         // critique : < 30j restants
+const URG_DAYS  = 180;        // urgent   : < 6 mois restants
+const WARN_DAYS = 365;        // vigilance: < 12 mois restants
+
+// ================================================================
+// STATE
+// ================================================================
+let demandes=[], activites=[], joined=[], filtered=[];
+let currentTab='', currentPage=1;
+const PAGE=20;
+let charts={};
+let f1Loaded=false, f2Loaded=false;
+
+// ================================================================
+// FORCLUSION LOGIC
+// ================================================================
+function getForclusionInfo(d){
+  if(!d.dateCreation) return {status:'unknown',jRestants:null,dateLimit:null,pct:0};
+  const dateLimit = new Date(d.dateCreation.getTime() + FORC_DAYS*86400000);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const jRestants = Math.round((dateLimit - today) / 86400000);
+  const elapsed = FORC_DAYS - jRestants;
+  const pct = Math.min(100, Math.max(0, Math.round(elapsed/FORC_DAYS*100)));
+
+  let status;
+  if(jRestants < 0)         status='dead';
+  else if(jRestants <= CRIT_DAYS)  status='crit';
+  else if(jRestants <= URG_DAYS)   status='urg';
+  else if(jRestants <= WARN_DAYS)  status='warn';
+  else                              status='ok';
+
+  return {status, jRestants, dateLimit, pct};
+}
+
+const FORC_LABELS = {dead:'Forclos',crit:'Critique',urg:'Urgent',warn:'Vigilance',ok:'OK',unknown:'N/A'};
+const FORC_COLORS = {dead:'#6B7280',crit:'#B91C1C',urg:'#C2410C',warn:'#CA8A04',ok:'#15803D',unknown:'#9CA3AF'};
+
+function forcPill(fi){
+  if(!fi||fi.status==='unknown') return '<span class="fpill ok">N/A</span>';
+  const icons={dead:'⚫',crit:'🔴',urg:'🟠',warn:'🟡',ok:'🟢'};
+  const label = fi.jRestants!==null
+    ? (fi.jRestants<0 ? `Forclos +${Math.abs(fi.jRestants)}j` : `${fi.jRestants}j restants`)
+    : 'N/A';
+  return `<span class="fpill ${fi.status}">${icons[fi.status]} ${label}</span>`;
+}
+
+// ================================================================
+// FILE IMPORT
+// ================================================================
+function dragOver(e,id){e.preventDefault();document.getElementById(id).classList.add('drag')}
+function dragLeave(id){document.getElementById(id).classList.remove('drag')}
+function dropFile(e,w){e.preventDefault();dragLeave('zone-'+w);const f=e.dataTransfer.files[0];if(f)parseFile(f,w)}
+function loadFile(inp,w){if(inp.files[0])parseFile(inp.files[0],w)}
+
+function parseFile(file,which){
+  setStatus(which,'idle','Lecture en cours…');
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'binary',cellDates:true});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const data=XLSX.utils.sheet_to_json(ws,{defval:''});
+      if(which==='f1'){demandes=data;f1Loaded=true;setStatus('f1','ok',`${data.length} lignes · ${Object.keys(data[0]||{}).length} colonnes`);document.getElementById('card-f1').classList.add('loaded');showColPreview('f1',data);}
+      else{activites=data;f2Loaded=true;setStatus('f2','ok',`${data.length} lignes · ${Object.keys(data[0]||{}).length} colonnes`);document.getElementById('card-f2').classList.add('loaded');showColPreview('f2',data);}
+      updateFileBadge();
+      if(f1Loaded&&f2Loaded) buildJoin();
+    }catch(err){setStatus(which,'err','Erreur : '+err.message);}
+  };
+  reader.readAsBinaryString(file);
+}
+
+function setStatus(w,type,msg){
+  const s=document.getElementById('status-'+w),d=document.getElementById('dot-'+w);
+  s.className='import-status '+type;d.className='dot '+type;document.getElementById('msg-'+w).textContent=msg;
+}
+
+function showColPreview(which,data){
+  const keys=Object.keys(data[0]||{});
+  const prev=document.getElementById('col-preview');
+  prev.style.display='block';
+  const color=which==='f1'?'var(--or)':'var(--blu)';
+  const label=which==='f1'?'Demandes':'Activités';
+  document.getElementById('col-preview-inner').innerHTML+=`<div style="background:var(--sur2);border:1px solid var(--bdr);border-radius:9px;padding:12px 14px">
+    <div style="font-size:11px;font-weight:600;color:${color};margin-bottom:8px">${label}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px">${keys.map(k=>`<span style="font-size:10px;font-family:'DM Mono',monospace;background:var(--bg2);padding:2px 6px;border-radius:4px;color:var(--txt2)">${k}</span>`).join('')}</div>
+  </div>`;
+}
+
+// ================================================================
+// JOIN
+// ================================================================
+function findCol(obj,candidates){
+  const keys=Object.keys(obj);
+  for(const c of candidates){
+    const f=keys.find(k=>k.toLowerCase().replace(/[\s_\-éèêàù]/g,'').includes(c.toLowerCase().replace(/[\s_\-éèêàù]/g,'')));
+    if(f) return f;
+  }
+  return null;
+}
+
+function buildJoin(){
+  const kD=findCol(demandes[0],['numdemande','numero','numdem'])||Object.keys(demandes[0])[0];
+  const kA=findCol(activites[0],['numdemande','numero','numdem'])||Object.keys(activites[0])[0];
+  const cEtat=findCol(demandes[0],['libetatdemande','etat','statut'])||'Lib état demande';
+  const cDesc=findCol(demandes[0],['descriptiondemande','description'])||'Description demande';
+  const cDate=findCol(demandes[0],['datecreation','datecrea','date'])||'Date création';
+  const cActe=findCol(demandes[0],['libacte','acte'])||'Lib acte';
+  const cType=findCol(demandes[0],['typedemande','type'])||'Type demande';
+  const cLibAct=findCol(activites[0],['libactivite','activite'])||'Lib activité';
+  const cDDebAct=findCol(activites[0],['datedebutactivite','datedebut'])||'Date début activité';
+  const cDFinAct=findCol(activites[0],['datefinactivite','datefin'])||'Date fin activité';
+  const cHDeb=findCol(activites[0],['heuredebutactivite','heuredebut'])||'Heure début activité';
+  const cHFin=findCol(activites[0],['heurefinactivite','heurefin'])||'Heure fin activité';
+  const cCUID=findCol(activites[0],['cuidarh','cuid'])||'CUID ARH traitant activité';
+  const cNomA=findCol(activites[0],['nomarh','nom'])||'Nom ARH traitant';
+  const cPrenA=findCol(activites[0],['prenomarh','prenom'])||'Prénom ARH traitant';
+  const cEquipe=findCol(activites[0],['libelleequipe','equipe'])||'Libellé équipe ARH';
+
+  const actMap={};
+  activites.forEach(a=>{
+    const n=String(a[kA]||'').trim();
+    if(!actMap[n]) actMap[n]=[];
+    actMap[n].push(a);
+  });
+
+  joined=demandes.map(d=>{
+    const num=String(d[kD]||'').trim();
+    const acts=(actMap[num]||[]).map(a=>({
+      libActivite:String(a[cLibAct]||'').trim(),
+      dateDebut:parseDate(a[cDDebAct]),
+      dateFin:parseDate(a[cDFinAct]),
+      heureDebut:String(a[cHDeb]||'').trim(),
+      heureFin:String(a[cHFin]||'').trim(),
+      cuid:String(a[cCUID]||'').trim(),
+      nomARH:String(a[cNomA]||'').trim(),
+      prenomARH:String(a[cPrenA]||'').trim(),
+      equipe:String(a[cEquipe]||'').trim(),
+    }));
+    acts.sort((a,b)=>(b.dateFin||b.dateDebut||0)-(a.dateFin||a.dateDebut||0));
+    const lastAct=acts[0];
+    const dateCreation=parseDate(d[cDate]);
+    const today=new Date();today.setHours(0,0,0,0);
+    const age=dateCreation?Math.round((today-dateCreation)/86400000):null;
+
+    const rec={
+      numDemande:num,
+      type:String(d[cType]||'').trim(),
+      etat:String(d[cEtat]||'').trim(),
+      description:String(d[cDesc]||'').trim(),
+      dateCreation,
+      libActe:String(d[cActe]||'').trim(),
+      activites:acts,
+      dernActivite:lastAct?lastAct.libActivite:'',
+      dateDernActivite:lastAct?(lastAct.dateFin||lastAct.dateDebut):null,
+      arbTraitant:lastAct?`${lastAct.prenomARH} ${lastAct.nomARH}`.trim():'',
+      equipe:lastAct?lastAct.equipe:'',
+      nbActivites:acts.length,
+      age,
+      _raw:d
+    };
+    rec.forc=getForclusionInfo(rec);
+    return rec;
+  });
+
+  const withAct=joined.filter(d=>d.nbActivites>0).length;
+  document.getElementById('join-info').textContent=`${joined.length} demandes · ${withAct} avec activités · Délai forclusion : 823 jours calculé`;
+  document.getElementById('import-ready').style.display='block';
+  document.getElementById('side-foot').innerHTML=`${joined.length} demandes<br>${activites.length} activités<br>Forclusion : 823j`;
+
+  const deadCount=joined.filter(d=>d.forc.status==='dead').length;
+  const critCount=joined.filter(d=>d.forc.status==='crit').length;
+  document.getElementById('nb-alertes').textContent=critCount+deadCount;
+
+  populateFilters();
+  applyFilters();
+}
+
+function parseDate(v){
+  if(!v) return null;
+  if(v instanceof Date) return v;
+  if(typeof v==='number') return new Date(Math.round((v-25569)*86400000));
+  const s=String(v).trim();
+  if(!s) return null;
+  const m=s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if(m) return new Date(+m[3],+m[2]-1,+m[1]);
+  const d2=new Date(s); return isNaN(d2)?null:d2;
+}
+function fmtDate(d){if(!d) return '—';return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});}
+
+// ================================================================
+// POPULATE FILTERS
+// ================================================================
+function populateFilters(){
+  const etats=[...new Set(joined.map(d=>d.etat).filter(Boolean))].sort();
+  ['f-etat','ft-etat'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    el.innerHTML='<option value="">Tous</option>'+etats.map(e=>`<option>${e}</option>`).join('');
+  });
+  const months=[...new Set(joined.map(d=>{if(!d.dateCreation)return null;return d.dateCreation.getFullYear()+'-'+String(d.dateCreation.getMonth()+1).padStart(2,'0');}).filter(Boolean))].sort().reverse();
+  const psel=document.getElementById('f-periode');
+  if(psel) psel.innerHTML='<option value="">Toute période</option>'+months.map(m=>`<option value="${m}">${m}</option>`).join('');
+  const arhs=[...new Set(joined.map(d=>d.arbTraitant).filter(Boolean))].sort();
+  ['f-arh','ft-arh'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    el.innerHTML='<option value="">Tous</option>'+arhs.map(a=>`<option>${a}</option>`).join('');
+  });
+}
+
+// ================================================================
+// FILTERS
+// ================================================================
+function getFilterValues(){
+  return{
+    etat:(document.getElementById('f-etat')||document.getElementById('ft-etat'))?.value||'',
+    periode:document.getElementById('f-periode')?.value||'',
+    forc:(document.getElementById('f-forc')||document.getElementById('ft-forc'))?.value||'',
+    arh:(document.getElementById('f-arh')||document.getElementById('ft-arh'))?.value||'',
+    search:(document.getElementById('f-search')||document.getElementById('ft-search'))?.value?.toLowerCase()||'',
+  };
+}
+
+function applyFilters(){
+  // Sync filter dropdowns between views
+  const v1Etat=document.getElementById('f-etat'),v2Etat=document.getElementById('ft-etat');
+  const v1Forc=document.getElementById('f-forc'),v2Forc=document.getElementById('ft-forc');
+  const v1Arh=document.getElementById('f-arh'),v2Arh=document.getElementById('ft-arh');
+  const v1S=document.getElementById('f-search'),v2S=document.getElementById('ft-search');
+  if(document.activeElement===v1Etat&&v2Etat) v2Etat.value=v1Etat.value;
+  if(document.activeElement===v2Etat&&v1Etat) v1Etat.value=v2Etat.value;
+  if(document.activeElement===v1Forc&&v2Forc) v2Forc.value=v1Forc.value;
+  if(document.activeElement===v2Forc&&v1Forc) v1Forc.value=v2Forc.value;
+  if(document.activeElement===v1Arh&&v2Arh) v2Arh.value=v1Arh.value;
+  if(document.activeElement===v2Arh&&v1Arh) v1Arh.value=v2Arh.value;
+
+  const etat=(v1Etat||v2Etat)?.value||'';
+  const periode=document.getElementById('f-periode')?.value||'';
+  const forc=(v1Forc||v2Forc)?.value||'';
+  const arh=(v1Arh||v2Arh)?.value||'';
+  const search=((v1S||v2S)?.value||'').toLowerCase();
+
+  filtered=joined.filter(d=>{
+    if(etat&&d.etat!==etat) return false;
+    if(periode&&d.dateCreation){
+      const dp=d.dateCreation.getFullYear()+'-'+String(d.dateCreation.getMonth()+1).padStart(2,'0');
+      if(dp!==periode) return false;
+    }
+    if(forc&&d.forc.status!==forc) return false;
+    if(arh&&d.arbTraitant!==arh) return false;
+    if(search&&!d.numDemande.toLowerCase().includes(search)&&!d.description.toLowerCase().includes(search)) return false;
+    if(currentTab&&d.forc.status!==currentTab) return false;
+    return true;
+  });
+
+  currentPage=1;
+  updateAll();
+}
+
+function resetFilters(){
+  ['f-etat','ft-etat','f-periode','f-forc','ft-forc','f-arh','ft-arh'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['f-search','ft-search'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  currentTab='';
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('on',i===0||i===6));
+  applyFilters();
+}
+
+function setTab(el,tab){
+  currentTab=tab;
+  document.querySelectorAll('#view-table .tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  currentPage=1;
+  applyFilters();
+}
+
+// ================================================================
+// UPDATE ALL
+// ================================================================
+function updateAll(){
+  updateKPIs();
+  updateTopbar();
+  updateTabCounts();
+  const curView=document.querySelector('.view.on')?.id?.replace('view-','');
+  if(curView==='dashboard'){drawDashboard();}
+  else if(curView==='table'){renderTable();}
+  else if(curView==='alertes'){renderAlertes();}
+  else if(curView==='manager'){renderManager();}
+  else if(curView==='nettoyage'){renderNettoyage();}
+  else if(curView==='activites'){drawActivitesView();}
+}
+
+function updateTopbar(){
+  const alive=filtered.filter(d=>d.forc.status!=='dead').length;
+  document.getElementById('topbar-sub').textContent=`${alive} dossiers actifs · ${filtered.filter(d=>d.forc.status==='dead').length} forclos · Délai forclusion : 823j`;
+}
+
+function updateTabCounts(){
+  const counts={};
+  joined.forEach(d=>counts[d.forc.status]=(counts[d.forc.status]||0)+1);
+  counts['']= joined.length;
+  document.getElementById('tc-all').textContent=joined.length;
+  document.getElementById('tc-crit').textContent=counts.crit||0;
+  document.getElementById('tc-urg').textContent=counts.urg||0;
+  document.getElementById('tc-warn').textContent=counts.warn||0;
+  document.getElementById('tc-ok').textContent=counts.ok||0;
+  document.getElementById('tc-dead').textContent=counts.dead||0;
+}
+
+function updateFileBadge(){
+  const n=(f1Loaded?1:0)+(f2Loaded?1:0);
+  const b=document.getElementById('nb-files');b.textContent=n+'/2';b.className='side-badge '+(n===2?'ok':'warn');
+}
+
+// ================================================================
+// KPIs
+// ================================================================
+function updateKPIs(){
+  const src=joined; // KPIs always on full dataset
+  const counts={total:0,crit:0,urg:0,warn:0,ok:0,dead:0};
+  src.forEach(d=>{
+    counts.total++;
+    counts[d.forc.status]=(counts[d.forc.status]||0)+1;
+  });
+  document.getElementById('k-total').textContent=counts.total-(counts.dead||0);
+  document.getElementById('k-total-sub').textContent=`${counts.total} dont ${counts.dead||0} forclos`;
+  document.getElementById('k-crit').textContent=counts.crit||0;
+  document.getElementById('k-urg').textContent=counts.urg||0;
+  document.getElementById('k-warn').textContent=counts.warn||0;
+  document.getElementById('k-ok').textContent=counts.ok||0;
+  document.getElementById('k-dead').textContent=counts.dead||0;
+  document.getElementById('nb-alertes').textContent=(counts.crit||0)+(counts.dead||0);
+}
+
+// ================================================================
+// DASHBOARD CHARTS
+// ================================================================
+function dc(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+
+function drawDashboard(){
+  // Banners
+  const crit=joined.filter(d=>d.forc.status==='crit').length;
+  const urg=joined.filter(d=>d.forc.status==='urg').length;
+  let banners='';
+  if(crit>0) banners+=`<div class="forc-banner crit"><div class="forc-icon">🚨</div><div class="forc-banner-txt"><div class="forc-banner-title">${crit} dossier${crit>1?'s':''} en forclusion critique — moins de 30 jours restants</div><div class="forc-banner-sub">Action immédiate requise. Ces dossiers ne pourront plus être récupérés sous 30 jours.</div></div><button class="btn btn-red" onclick="nav(document.querySelectorAll('.nav-it')[6],'alertes')">Voir les alertes →</button></div>`;
+  if(urg>0) banners+=`<div class="forc-banner urg"><div class="forc-icon">⚠️</div><div class="forc-banner-txt"><div class="forc-banner-title">${urg} dossier${urg>1?'s':''} à traiter dans les 6 prochains mois</div><div class="forc-banner-sub">À planifier en priorité pour éviter la perte de remboursement.</div></div><button class="btn btn-amb" onclick="nav(document.querySelectorAll('.nav-it')[7],'manager')">Rapport manager →</button></div>`;
+  document.getElementById('dash-banners').innerHTML=banners;
+
+  drawEvolChart(); drawEtatChart(); drawForcChart(); drawAnciennete();
+}
+
+function drawEvolChart(){
+  dc('evol');
+  const months={};
+  filtered.forEach(d=>{
+    if(!d.dateCreation) return;
+    const k=d.dateCreation.getFullYear()+'-'+String(d.dateCreation.getMonth()+1).padStart(2,'0');
+    if(!months[k]) months[k]={crit:0,urg:0,warn:0,ok:0,dead:0};
+    months[k][d.forc.status]=(months[k][d.forc.status]||0)+1;
+  });
+  const labels=Object.keys(months).sort();
+  const colors={crit:'#B91C1C',urg:'#C2410C',warn:'#CA8A04',ok:'#15803D',dead:'#9CA3AF'};
+  charts['evol']=new Chart(document.getElementById('ch-evol').getContext('2d'),{
+    type:'bar',
+    data:{labels,datasets:['ok','warn','urg','crit','dead'].map(s=>({
+      label:FORC_LABELS[s],
+      data:labels.map(k=>months[k][s]||0),
+      backgroundColor:colors[s]+'90',borderColor:colors[s],borderWidth:1.5,borderRadius:4,borderSkipped:false,stack:'s'
+    }))},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:10,usePointStyle:true}}},
+      scales:{y:{stacked:true,ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}},x:{stacked:true,ticks:{font:{size:10}},grid:{display:false}}}
+    }
+  });
+}
+
+function drawEtatChart(){
+  dc('etat');
+  const counts={};
+  filtered.forEach(d=>{counts[d.etat]=(counts[d.etat]||0)+1;});
+  const labels=Object.keys(counts);
+  const data=labels.map(k=>counts[k]);
+  const colorMap={'En cours':'#D97706','En attente':'#D73E3E','Clôturé':'#16A34A','Annulé':'#6B7280'};
+  const bg=labels.map(l=>colorMap[l]||'#2563EB');
+  charts['etat']=new Chart(document.getElementById('ch-etat').getContext('2d'),{
+    type:'doughnut',
+    data:{labels,datasets:[{data,backgroundColor:bg,borderWidth:3,borderColor:'#fff',hoverOffset:6}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false}}}
+  });
+  document.getElementById('etat-legend').innerHTML=labels.map((l,i)=>`<span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:${bg[i]}"></span>${l} (${data[i]})</span>`).join('');
+}
+
+function drawForcChart(){
+  dc('forc');
+  const statuses=['crit','urg','warn','ok'];
+  const labels=['Critique < 30j','Urgent < 6 mois','Vigilance 6–12 mois','OK > 12 mois'];
+  const colors=['#B91C1C','#C2410C','#CA8A04','#15803D'];
+  const data=statuses.map(s=>filtered.filter(d=>d.forc.status===s).length);
+  charts['forc']=new Chart(document.getElementById('ch-forc').getContext('2d'),{
+    type:'bar',
+    data:{labels,datasets:[{data,backgroundColor:colors.map(c=>c+'25'),borderColor:colors,borderWidth:2,borderRadius:8,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.parsed.y} dossier${ctx.parsed.y>1?'s':''}`}}},
+      scales:{y:{ticks:{font:{size:11}},grid:{color:'rgba(0,0,0,0.04)'}},x:{ticks:{font:{size:11}},grid:{display:false}}}
+    }
+  });
+}
+
+function drawAnciennete(){
+  const today=new Date();today.setHours(0,0,0,0);
+  const b=[{lbl:'< 30j',min:0,max:29,c:'#16A34A'},{lbl:'30–180j',min:30,max:180,c:'#D97706'},{lbl:'181–365j',min:181,max:365,c:'#C2410C'},{lbl:'> 1 an',min:366,max:9999,c:'#B91C1C'}];
+  const cnt=b.map(bk=>filtered.filter(d=>d.forc.status!=='dead'&&d.age!==null&&d.age>=bk.min&&d.age<=bk.max).length);
+  const max=Math.max(...cnt,1);
+  document.getElementById('anciennete').innerHTML=b.map((bk,i)=>`
+    <div class="stat-row">
+      <div class="stat-row-lbl">${bk.lbl}</div>
+      <div class="stat-row-bar"><div class="pbar"><div class="pfill" style="width:${Math.round(cnt[i]/max*100)}%;background:${bk.c}"></div></div></div>
+      <div class="stat-row-val">${cnt[i]}</div>
+    </div>`).join('');
+}
+
+// ================================================================
+// TABLE
+// ================================================================
+function getEtatClass(e){return {'En cours':'b-a','En attente':'b-r','Clôturé':'b-g','Annulé':'b-gray'}[e]||'b-gray';}
+function getActClass(lib){if(!lib)return 'b-gray';const n=parseInt(lib);return['','act-1','act-2','act-3','act-4','act-5','act-6'][n]||'b-gray';}
+
+function forcBarHTML(fi){
+  if(!fi||!fi.pct) return '';
+  const color=FORC_COLORS[fi.status]||'#9CA3AF';
+  const pct=fi.pct;
+  return `<div class="forc-bar-wrap">
+    <div class="forc-bar-bg"><div class="forc-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+    <div class="forc-bar-pct" style="color:${color}">${pct}%</div>
+  </div>`;
+}
+
+function renderTable(){
+  if(!filtered.length){
+    document.getElementById('t-body').innerHTML=`<tr><td colspan="11" style="text-align:center;padding:40px;color:var(--txt3)">Aucun dossier — importez vos fichiers</td></tr>`;
+    document.getElementById('t-count').textContent='0';
+    return;
+  }
+  const sort=document.getElementById('t-sort')?.value||'forc-asc';
+  const data=[...filtered];
+  const forder={crit:0,urg:1,warn:2,ok:3,dead:4,unknown:5};
+  if(sort==='forc-asc') data.sort((a,b)=>{const d=forder[a.forc.status]-forder[b.forc.status];if(d!==0)return d;return (a.forc.jRestants||9999)-(b.forc.jRestants||9999);});
+  else if(sort==='date-desc') data.sort((a,b)=>(b.dateCreation||0)-(a.dateCreation||0));
+  else if(sort==='date-asc') data.sort((a,b)=>(a.dateCreation||0)-(b.dateCreation||0));
+  else if(sort==='age-desc') data.sort((a,b)=>(b.age||0)-(a.age||0));
+
+  const total=data.length;
+  const start=(currentPage-1)*PAGE;
+  const page=data.slice(start,start+PAGE);
+  document.getElementById('t-count').textContent=total;
+  document.getElementById('p-info').textContent=`${start+1}–${Math.min(start+PAGE,total)} sur ${total}`;
+
+  document.getElementById('t-body').innerHTML=page.map(d=>{
+    const rowClass=d.forc.status==='crit'?'row-crit':d.forc.status==='dead'?'row-dead':d.forc.status==='urg'?'row-urg':'';
+    return `<tr class="${rowClass}" onclick="openModal('${d.numDemande}')">
+      <td><span class="cell-id">${d.numDemande}</span></td>
+      <td style="color:var(--txt2);font-size:11px">${d.type}</td>
+      <td><span class="badge ${getEtatClass(d.etat)}">${d.etat||'—'}</span></td>
+      <td class="mono" style="font-size:11px">${fmtDate(d.dateCreation)}</td>
+      <td><span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:${d.age>365?'var(--forc-crit)':d.age>180?'var(--forc-urg)':'var(--txt2)'}">${d.age!==null?d.age+'j':'—'}</span></td>
+      <td class="mono" style="font-size:11px;font-weight:500;color:${d.forc.status==='dead'?'var(--forc-crit)':d.forc.status==='crit'?'var(--forc-crit)':'var(--txt)'}">${fmtDate(d.forc.dateLimit)}</td>
+      <td>${forcPill(d.forc)}</td>
+      <td>${forcBarHTML(d.forc)}</td>
+      <td><span class="badge ${getActClass(d.dernActivite)}" style="font-size:10px" title="${d.dernActivite}">${d.dernActivite?d.dernActivite.replace(/^\d+:/,'').trim().slice(0,28):'—'}</span></td>
+      <td style="font-size:12px">${d.arbTraitant||'—'}</td>
+      <td><button class="btn btn-ghost" style="padding:3px 7px;font-size:11px" onclick="event.stopPropagation();openModal('${d.numDemande}')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button></td>
+    </tr>`;
+  }).join('');
+
+  renderPagi(total);
+}
+
+function renderPagi(total){
+  const pages=Math.ceil(total/PAGE);
+  const c=document.getElementById('p-btns');
+  let h=`<button class="pbtn" onclick="gp(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+  const s=Math.max(1,currentPage-2),e=Math.min(pages,currentPage+2);
+  if(s>1)h+=`<button class="pbtn" onclick="gp(1)">1</button><span style="padding:0 3px;color:var(--txt3)">…</span>`;
+  for(let p=s;p<=e;p++)h+=`<button class="pbtn ${p===currentPage?'on':''}" onclick="gp(${p})">${p}</button>`;
+  if(e<pages)h+=`<span style="padding:0 3px;color:var(--txt3)">…</span><button class="pbtn" onclick="gp(${pages})">${pages}</button>`;
+  h+=`<button class="pbtn" onclick="gp(${currentPage+1})" ${currentPage===pages?'disabled':''}>›</button>`;
+  c.innerHTML=h;
+}
+function gp(p){const t=filtered.length;const pg=Math.ceil(t/PAGE);if(p<1||p>pg)return;currentPage=p;renderTable();}
+
+// ================================================================
+// ALERTES VIEW
+// ================================================================
+function renderAlertes(){
+  const sections=[
+    {key:'crit',label:'🔴 Critique — Forclusion dans moins de 30 jours',cls:'crit',desc:'Action immédiate requise. Ces dossiers seront perdus dans moins d\'un mois.'},
+    {key:'urg',label:'🟠 Urgent — Forclusion dans moins de 6 mois',cls:'urg',desc:'À traiter en priorité dans les prochaines semaines.'},
+    {key:'warn',label:'🟡 Vigilance — Forclusion dans 6 à 12 mois',cls:'warn',desc:'À planifier. Surveillez l\'avancement de ces dossiers.'},
+    {key:'dead',label:'⚫ Forclos — Délai dépassé',cls:'dead',desc:'Ces dossiers ont dépassé le délai légal de 823 jours. Récupération impossible.'},
+  ];
+
+  let html='';
+  sections.forEach(sec=>{
+    const items=joined.filter(d=>d.forc.status===sec.key).sort((a,b)=>(a.forc.jRestants||9999)-(b.forc.jRestants||9999));
+    if(!items.length) return;
+    html+=`<div class="alert-section">
+      <div class="alert-section-head ${sec.cls}">
+        <div>
+          <div style="font-size:13px;font-weight:600">${sec.label} — ${items.length} dossier${items.length>1?'s':''}</div>
+          <div style="font-size:11px;opacity:.7;margin-top:2px">${sec.desc}</div>
+        </div>
+        <button class="btn btn-ghost" style="font-size:11px" onclick="exportCSVSubset(${JSON.stringify(items.map(d=>d.numDemande))})">Exporter</button>
+      </div>
+      <div class="tcard">
+        <table>
+          <thead><tr><th>Num demande</th><th>État</th><th>Date création</th><th>Âge (j)</th><th>Date limite</th><th>Délai restant</th><th>Avancement</th><th>ARH traitant</th><th>Équipe</th><th></th></tr></thead>
+          <tbody>${items.map(d=>`<tr class="row-${sec.key}" onclick="openModal('${d.numDemande}')">
+            <td><span class="cell-id">${d.numDemande}</span></td>
+            <td><span class="badge ${getEtatClass(d.etat)}">${d.etat||'—'}</span></td>
+            <td class="mono" style="font-size:11px">${fmtDate(d.dateCreation)}</td>
+            <td class="mono" style="font-size:11px">${d.age!==null?d.age+'j':'—'}</td>
+            <td class="mono" style="font-size:11px;font-weight:600;color:var(--forc-${sec.key})">${fmtDate(d.forc.dateLimit)}</td>
+            <td>${forcPill(d.forc)}</td>
+            <td>${forcBarHTML(d.forc)}</td>
+            <td style="font-size:12px">${d.arbTraitant||'—'}</td>
+            <td style="font-size:11px;color:var(--txt2)">${d.equipe||'—'}</td>
+            <td><button class="btn btn-ghost" style="padding:3px 7px" onclick="event.stopPropagation();openModal('${d.numDemande}')">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button></td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </div>`;
+  });
+  document.getElementById('alertes-content').innerHTML=html||'<div style="text-align:center;padding:60px;color:var(--txt3)">Aucune alerte — importez vos données</div>';
+}
+
+// ================================================================
+// MANAGER VIEW (< 6 mois)
+// ================================================================
+function renderManager(){
+  const items=joined.filter(d=>d.forc.status==='crit'||d.forc.status==='urg').sort((a,b)=>(a.forc.jRestants||9999)-(b.forc.jRestants||9999));
+  if(!items.length){document.getElementById('manager-content').innerHTML='<div style="text-align:center;padding:60px;color:var(--txt3)">Aucun dossier à traiter dans les 6 prochains mois.</div>';return;}
+
+  // Group by ARH
+  const byARH={};
+  items.forEach(d=>{
+    const k=d.arbTraitant||'Non assigné';
+    if(!byARH[k]) byARH[k]={equipe:d.equipe,items:[]};
+    byARH[k].items.push(d);
+  });
+
+  const today=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  let html=`<div style="background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);padding:20px 24px;margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div>
+        <div style="font-size:11px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.6px">Rapport généré le</div>
+        <div style="font-size:16px;font-weight:600;margin-top:2px">${today}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:11px;color:var(--txt3)">Dossiers concernés</div>
+        <div style="font-size:24px;font-weight:600;font-family:'DM Mono',monospace;color:var(--forc-urg)">${items.length}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+      <div style="background:var(--forc-crit-bg);border:1px solid var(--forc-crit-bdr);border-radius:8px;padding:10px 12px;text-align:center">
+        <div style="font-size:20px;font-weight:600;font-family:'DM Mono',monospace;color:var(--forc-crit)">${items.filter(d=>d.forc.status==='crit').length}</div>
+        <div style="font-size:11px;color:var(--forc-crit);margin-top:2px">Critiques &lt; 30j</div>
+      </div>
+      <div style="background:var(--forc-urg-bg);border:1px solid var(--forc-urg-bdr);border-radius:8px;padding:10px 12px;text-align:center">
+        <div style="font-size:20px;font-weight:600;font-family:'DM Mono',monospace;color:var(--forc-urg)">${items.filter(d=>d.forc.status==='urg').length}</div>
+        <div style="font-size:11px;color:var(--forc-urg);margin-top:2px">Urgents &lt; 6 mois</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--bdr);border-radius:8px;padding:10px 12px;text-align:center">
+        <div style="font-size:20px;font-weight:600;font-family:'DM Mono',monospace;color:var(--txt)">${Object.keys(byARH).length}</div>
+        <div style="font-size:11px;color:var(--txt2);margin-top:2px">ARH concernés</div>
+      </div>
+    </div>
+  </div>`;
+
+  Object.entries(byARH).forEach(([arh,{equipe,items:aitems}])=>{
+    html+=`<div style="background:var(--sur);border:1px solid var(--bdr);border-radius:var(--rl);margin-bottom:12px;overflow:hidden">
+      <div style="padding:12px 16px;background:var(--sur2);border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:30px;height:30px;border-radius:50%;background:var(--or-bg);color:var(--or);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">${arh.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2)}</div>
+          <div><div style="font-size:13px;font-weight:600">${arh}</div><div style="font-size:11px;color:var(--txt2)">${equipe}</div></div>
+        </div>
+        <span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:500;background:var(--or-bg);color:var(--or);padding:3px 8px;border-radius:6px">${aitems.length} dossier${aitems.length>1?'s':''}</span>
+      </div>
+      <table style="width:100%">
+        <thead><tr>
+          <th style="padding:8px 12px;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;background:var(--sur2);border-bottom:1px solid var(--bdr)">Num demande</th>
+          <th style="padding:8px 12px;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;background:var(--sur2);border-bottom:1px solid var(--bdr)">État</th>
+          <th style="padding:8px 12px;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;background:var(--sur2);border-bottom:1px solid var(--bdr)">Date création</th>
+          <th style="padding:8px 12px;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;background:var(--sur2);border-bottom:1px solid var(--bdr)">Date limite forclusion</th>
+          <th style="padding:8px 12px;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;background:var(--sur2);border-bottom:1px solid var(--bdr)">Délai restant</th>
+          <th style="padding:8px 12px;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;background:var(--sur2);border-bottom:1px solid var(--bdr)">Avancement</th>
+          <th style="padding:8px 12px;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;background:var(--sur2);border-bottom:1px solid var(--bdr)">Description</th>
+        </tr></thead>
+        <tbody>${aitems.map(d=>`<tr style="border-bottom:1px solid var(--bdr);cursor:pointer" onclick="openModal('${d.numDemande}')">
+          <td style="padding:9px 12px"><span class="cell-id">${d.numDemande}</span></td>
+          <td style="padding:9px 12px"><span class="badge ${getEtatClass(d.etat)}">${d.etat}</span></td>
+          <td style="padding:9px 12px;font-family:'DM Mono',monospace;font-size:11px">${fmtDate(d.dateCreation)}</td>
+          <td style="padding:9px 12px;font-family:'DM Mono',monospace;font-size:11px;font-weight:600;color:var(--forc-${d.forc.status})">${fmtDate(d.forc.dateLimit)}</td>
+          <td style="padding:9px 12px">${forcPill(d.forc)}</td>
+          <td style="padding:9px 12px">${forcBarHTML(d.forc)}</td>
+          <td style="padding:9px 12px;font-size:11px;color:var(--txt2);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${d.description}">${d.description||'—'}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>`;
+  });
+  document.getElementById('manager-content').innerHTML=html;
+}
+
+function printManager(){window.print();}
+
+// ================================================================
+// NETTOYAGE VIEW
+// ================================================================
+function renderNettoyage(){
+  const items=joined.filter(d=>d.forc.status==='dead').sort((a,b)=>(a.forc.jRestants||0)-(b.forc.jRestants||0));
+  if(!items.length){document.getElementById('nettoyage-content').innerHTML='<div style="background:var(--grn-bg);border:1px solid rgba(22,163,74,0.3);border-radius:var(--rl);padding:24px;text-align:center;color:var(--grn)"><div style="font-size:32px;margin-bottom:8px">✅</div><div style="font-weight:600">Aucun dossier forclos</div><div style="font-size:12px;margin-top:4px;opacity:.7">Tous les dossiers sont encore dans le délai légal.</div></div>';return;}
+
+  const totalLost=items.length;
+  const avgOverdue=Math.round(items.reduce((s,d)=>s+Math.abs(d.forc.jRestants||0),0)/items.length);
+
+  document.getElementById('nettoyage-content').innerHTML=`
+    <div style="background:var(--forc-dead-bg);border:1.5px solid var(--forc-dead-bdr);border-radius:var(--rl);padding:18px 20px;margin-bottom:16px;display:flex;align-items:center;gap:16px">
+      <div style="font-size:36px">⚫</div>
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:600;color:var(--forc-dead)">${totalLost} dossier${totalLost>1?'s':''} forclos — récupération impossible</div>
+        <div style="font-size:12px;color:var(--txt2);margin-top:4px">Dépassement moyen : <strong>${avgOverdue} jours</strong> au-delà du délai légal. Ces dossiers représentent une perte financière définitive pour Orange.</div>
+      </div>
+      <button class="btn btn-ghost" onclick="exportCSV('dead')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 12l-4 4-4-4M12 8v8"/></svg>
+        Exporter pour archivage
+      </button>
+    </div>
+    <div class="tcard">
+      <table>
+        <thead><tr>
+          <th>Num demande</th><th>État</th><th>Date création</th><th>Âge total (j)</th>
+          <th>Date limite (dépassée)</th><th>Dépassement</th><th>Dernière activité</th><th>ARH</th><th></th>
+        </tr></thead>
+        <tbody>${items.map(d=>`<tr class="row-dead" onclick="openModal('${d.numDemande}')">
+          <td><span class="cell-id" style="text-decoration:line-through;opacity:.6">${d.numDemande}</span></td>
+          <td><span class="badge b-gray">${d.etat||'—'}</span></td>
+          <td class="mono" style="font-size:11px">${fmtDate(d.dateCreation)}</td>
+          <td class="mono" style="font-size:11px">${d.age!==null?d.age+'j':'—'}</td>
+          <td class="mono" style="font-size:11px;color:var(--forc-dead)">${fmtDate(d.forc.dateLimit)}</td>
+          <td><span class="fpill dead">+${Math.abs(d.forc.jRestants||0)}j</span></td>
+          <td style="font-size:11px;color:var(--txt2)">${d.dernActivite?d.dernActivite.replace(/^\d+:/,'').trim().slice(0,30):'—'}</td>
+          <td style="font-size:12px">${d.arbTraitant||'—'}</td>
+          <td><button class="btn btn-ghost" style="padding:3px 7px" onclick="event.stopPropagation();openModal('${d.numDemande}')">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button></td>
+        </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+// ================================================================
+// ACTIVITES VIEW
+// ================================================================
+function drawActivitesView(){
+  dc('act');
+  const acts={};
+  joined.forEach(d=>d.activites.forEach(a=>{if(a.libActivite)acts[a.libActivite]=(acts[a.libActivite]||0)+1;}));
+  const sorted=Object.entries(acts).sort((a,b)=>b[1]-a[1]);
+  const labels=sorted.map(([l])=>l.replace(/^\d+:/,'').trim().slice(0,40));
+  const data=sorted.map(([,v])=>v);
+  const colors=['#FF7900','#2563EB','#D97706','#7C3AED','#D73E3E','#16A34A','#0891B2','#059669'];
+  charts['act']=new Chart(document.getElementById('ch-act').getContext('2d'),{
+    type:'bar',
+    data:{labels,datasets:[{data,backgroundColor:colors.concat(colors),borderRadius:6,borderSkipped:false}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{x:{ticks:{font:{size:11}},grid:{color:'rgba(0,0,0,0.04)'}},y:{ticks:{font:{size:11}},grid:{display:false}}}
+    }
+  });
+  const arhData={};
+  joined.forEach(d=>d.activites.forEach(a=>{
+    const k=`${a.prenomARH} ${a.nomARH}`.trim();if(!k)return;
+    if(!arhData[k])arhData[k]={total:0,equipe:a.equipe};
+    arhData[k].total++;
+  }));
+  const sorted2=Object.entries(arhData).sort((a,b)=>b[1].total-a[1].total).slice(0,8);
+  const maxA=sorted2[0]?.[1].total||1;
+  document.getElementById('arh-charge').innerHTML=sorted2.map(([nom,{total,equipe}],i)=>{
+    const ini=nom.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+    const c=colors[i%8];
+    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div style="width:28px;height:28px;border-radius:50%;background:${c}20;color:${c};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">${ini}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nom}</div>
+        <div style="font-size:10px;color:var(--txt2)">${equipe}</div>
+        <div class="pbar" style="margin-top:3px"><div class="pfill" style="width:${Math.round(total/maxA*100)}%;background:${c}"></div></div>
+      </div>
+      <div style="font-size:11px;font-family:'DM Mono',monospace;font-weight:500;flex-shrink:0">${total}</div>
+    </div>`;
+  }).join('')||'<div style="color:var(--txt3);font-size:12px">—</div>';
+}
+
+// ================================================================
+// MODAL
+// ================================================================
+function openModal(num){
+  const d=joined.find(r=>r.numDemande===num);if(!d) return;
+  const fi=d.forc;
+  const actColors=['#2563EB','#7C3AED','#D97706','#D73E3E','#16A34A','#FF7900'];
+  const statusIcons={dead:'⚫',crit:'🔴',urg:'🟠',warn:'🟡',ok:'🟢',unknown:'⚪'};
+
+  const gaugeColor=FORC_COLORS[fi.status]||'#9CA3AF';
+  let gaugeHtml='';
+  if(fi.dateLimit){
+    gaugeHtml=`<div class="forc-gauge">
+      <div class="forc-gauge-title" style="color:${gaugeColor}">${statusIcons[fi.status]} Forclusion — ${fi.jRestants!==null?(fi.jRestants>=0?fi.jRestants+' jours restants':'Forclos depuis '+Math.abs(fi.jRestants)+' jours'):'N/A'}</div>
+      <div class="forc-gauge-bar"><div class="forc-gauge-fill" style="width:${fi.pct}%;background:${gaugeColor}"></div></div>
+      <div class="forc-stats">
+        <span style="color:var(--txt3);font-size:11px">📅 Création : ${fmtDate(d.dateCreation)}</span>
+        <span style="font-size:11px;font-weight:600;color:${gaugeColor}">${fi.pct}% écoulé (${d.age}j / ${FORC_DAYS}j)</span>
+        <span style="color:${gaugeColor};font-size:11px;font-weight:600">⛔ Limite : ${fmtDate(fi.dateLimit)}</span>
+      </div>
+    </div>`;
+  }
+
+  document.getElementById('m-title').textContent='Dossier '+d.numDemande;
+  document.getElementById('m-sub').innerHTML=`<span class="badge ${getEtatClass(d.etat)}">${d.etat||'—'}</span> · ${d.type} · ${d.libActe}`;
+  document.getElementById('m-body').innerHTML=`
+    ${gaugeHtml}
+    <div class="msec">
+      <div class="msec-title">Informations demande</div>
+      <div class="mgrid">
+        <div class="mfield"><label>Num demande</label><div class="v mono">${d.numDemande}</div></div>
+        <div class="mfield"><label>Type</label><div class="v">${d.type}</div></div>
+        <div class="mfield"><label>État</label><div class="v"><span class="badge ${getEtatClass(d.etat)}">${d.etat||'—'}</span></div></div>
+        <div class="mfield"><label>Date création</label><div class="v mono">${fmtDate(d.dateCreation)}</div></div>
+        <div class="mfield"><label>Date limite forclusion</label><div class="v mono" style="color:${gaugeColor};font-weight:600">${fmtDate(fi.dateLimit)}</div></div>
+        <div class="mfield"><label>Délai restant</label><div class="v">${forcPill(fi)}</div></div>
+      </div>
+      ${d.description?`<div style="margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:8px;font-size:12px;color:var(--txt2);line-height:1.6">${d.description}</div>`:''}
+    </div>
+    <div class="msec">
+      <div class="msec-title">Historique des activités (${d.nbActivites})</div>
+      ${d.activites.length?d.activites.map((a,i)=>{
+        const dur=a.dateDebut&&a.dateFin?Math.round((a.dateFin-a.dateDebut)/86400000):null;
+        return `<div class="act-item">
+          <div class="act-num" style="background:${actColors[i%6]}20;color:${actColors[i%6]}">${i+1}</div>
+          <div>
+            <div style="font-size:13px;font-weight:500">${a.libActivite||'—'}</div>
+            <div class="act-meta">
+              <span>📅 ${fmtDate(a.dateDebut)} ${a.heureDebut}</span>
+              <span>🏁 ${fmtDate(a.dateFin)} ${a.heureFin}</span>
+              ${dur!==null?`<span>⏱ ${dur}j</span>`:''}
+              <span>👤 ${a.prenomARH} ${a.nomARH} <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--txt3)">${a.cuid}</span></span>
+              <span>🏢 ${a.equipe}</span>
+            </div>
+          </div>
+        </div>`;
+      }).join(''):'<div style="color:var(--txt3);font-size:12px;padding:8px 0">Aucune activité enregistrée</div>'}
+    </div>`;
+  document.getElementById('moverlay').classList.add('open');
+}
+function closeMod(e){if(e.target===document.getElementById('moverlay'))document.getElementById('moverlay').classList.remove('open');}
+
+// ================================================================
+// EXPORT CSV
+// ================================================================
+function buildCSVRows(items){
+  const headers=['Num demande','Type','Etat','Lib acte','Date creation','Age (jours)','Date limite forclusion','Jours restants forclusion','Statut forclusion','Derniere activite','Date derniere activite','ARH traitant','Equipe','Nb activites','Description'];
+  const rows=items.map(d=>[
+    d.numDemande,d.type,d.etat,d.libActe,fmtDate(d.dateCreation),d.age!==null?d.age:'',
+    fmtDate(d.forc.dateLimit),d.forc.jRestants!==null?d.forc.jRestants:'',FORC_LABELS[d.forc.status]||'',
+    d.dernActivite,fmtDate(d.dateDernActivite),d.arbTraitant,d.equipe,d.nbActivites,d.description
+  ].map(v=>String(v||'').replace(/;/g,',')));
+  return [headers.join(';'),...rows.map(r=>r.join(';'))].join('\n');
+}
+
+function exportCSV(type){
+  if(!joined.length){alert('Aucune donnée à exporter');return;}
+  let items,name;
+  if(type==='filtered'){items=filtered;name='rejets_cpam';}
+  else if(type==='urgent'){items=joined.filter(d=>d.forc.status==='crit'||d.forc.status==='urg');name='rejets_cpam_urgents';}
+  else if(type==='manager'){items=joined.filter(d=>d.forc.status==='crit'||d.forc.status==='urg');name='rejets_cpam_rapport_manager';}
+  else if(type==='dead'){items=joined.filter(d=>d.forc.status==='dead');name='rejets_cpam_forclos';}
+  else{items=filtered;name='rejets_cpam';}
+  const csv=buildCSVRows(items);
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download=name+'_'+new Date().toISOString().split('T')[0]+'.csv';
+  a.click();
+}
+
+function exportCSVSubset(nums){
+  const items=joined.filter(d=>nums.includes(d.numDemande));
+  const csv=buildCSVRows(items);
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download='rejets_cpam_selection_'+new Date().toISOString().split('T')[0]+'.csv';
+  a.click();
+}
+
+// ================================================================
+// NAV
+// ================================================================
+function nav(el,view){
+  document.querySelectorAll('.nav-it').forEach(n=>n.classList.remove('on'));
+  el.classList.add('on');
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  document.getElementById('view-'+view).classList.add('on');
+  if(joined.length>0){
+    if(view==='dashboard') drawDashboard();
+    else if(view==='table') renderTable();
+    else if(view==='alertes') renderAlertes();
+    else if(view==='manager') renderManager();
+    else if(view==='nettoyage') renderNettoyage();
+    else if(view==='activites') drawActivitesView();
+  }
+}
+</script>
+</body>
+</html>
