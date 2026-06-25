@@ -252,8 +252,8 @@ tbody td:last-child{padding-right:16px}
     </div>
   </div>
   <nav class="side-nav">
-    <div class="nav-lbl">Import</div>
-    <div class="nav-it on" onclick="nav(this,'import')">
+    <div class="nav-lbl admin-only" style="display:none">Import</div>
+    <div class="nav-it admin-only" style="display:none" onclick="nav(this,'import')">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M8 12l4-4 4 4M12 8v8"/></svg>
       Charger les fichiers
       <span class="side-badge warn" id="nb-files">0/2</span>
@@ -280,6 +280,12 @@ tbody td:last-child{padding-right:16px}
     <div class="nav-it" onclick="nav(this,'nettoyage')">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
       Nettoyage forclos
+    </div>
+    <div class="nav-lbl">💰 Finance</div>
+    <div class="nav-it" onclick="nav(this,'finance')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+      Pertes financières
+      <span class="side-badge warn" id="nb-finance" style="display:none">—</span>
     </div>
     <div class="nav-lbl">Analyse</div>
     <div class="nav-it" onclick="nav(this,'activites')">
@@ -317,17 +323,17 @@ tbody td:last-child{padding-right:16px}
   <div class="content">
 
     <!-- ==================== IMPORT ==================== -->
-    <div class="view on" id="view-import">
+    <div class="view" id="view-import">
       <div style="max-width:680px;margin:0 auto">
         <div style="margin-bottom:20px">
           <h2 style="font-size:17px;font-weight:600;margin-bottom:6px">Chargement des données</h2>
-          <p style="font-size:13px;color:var(--txt2)">Importez vos deux exports Excel. La jointure sur <code style="background:var(--bg2);padding:1px 5px;border-radius:4px;font-size:12px">Num demande</code> est automatique. Le délai de forclusion de <strong>823 jours</strong> (2 ans 3 mois) est calculé à partir de la date de création.</p>
+          <p style="font-size:13px;color:var(--txt2)">Importez vos trois exports Excel. Jointure automatique : <code style="background:var(--bg2);padding:1px 5px;border-radius:4px;font-size:12px">Num demande</code> entre Demandes/Activités, et <code style="background:var(--bg2);padding:1px 5px;border-radius:4px;font-size:12px">IdentRH Concerné</code> ↔ <code style="background:var(--bg2);padding:1px 5px;border-radius:4px;font-size:12px">N° IDENT</code> pour la perte financière. Délai de forclusion : <strong>823 jours</strong>.</p>
         </div>
         <div class="import-grid">
           <div class="import-card" id="card-f1">
             <div class="import-card-head">
               <div class="import-card-icon f1"><svg fill="none" stroke="var(--or)" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
-              <div><div class="import-card-label">Fichier Demandes</div><div class="import-card-sub">Num demande · État · Description · Date création · Lib acte</div></div>
+              <div><div class="import-card-label">Fichier Demandes</div><div class="import-card-sub">Num demande · État · Description · Date création · IdentRH Concerné</div></div>
             </div>
             <div class="import-zone" id="zone-f1" ondragover="dragOver(event,'zone-f1')" ondragleave="dragLeave('zone-f1')" ondrop="dropFile(event,'f1')">
               <input type="file" accept=".xlsx,.xls,.csv" onchange="loadFile(this,'f1')">
@@ -355,11 +361,29 @@ tbody td:last-child{padding-right:16px}
             <div class="import-status idle" id="status-f2"><div class="dot idle" id="dot-f2"></div><span id="msg-f2">En attente…</span></div>
           </div>
         </div>
+
+        <!-- FICHIER 3 - COMPTA -->
+        <div class="import-card" id="card-f3" style="margin-bottom:20px">
+          <div class="import-card-head">
+            <div class="import-card-icon" style="background:var(--grn-bg)"><svg fill="none" stroke="var(--grn)" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+            <div><div class="import-card-label">Fichier Comptabilité (pertes financières)</div><div class="import-card-sub">N° IDENT · Mois · Année · Montant IJ · Montant remboursement · Delta mensuel</div></div>
+          </div>
+          <div class="import-zone" id="zone-f3" ondragover="dragOver(event,'zone-f3')" ondragleave="dragLeave('zone-f3')" ondrop="dropFile(event,'f3')">
+            <input type="file" accept=".xlsx,.xls,.csv" onchange="loadFile(this,'f3')">
+            <div style="pointer-events:none">
+              <div class="import-icon"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M8 12l4-4 4 4M12 8v8"/></svg></div>
+              <div class="import-title">Glisser-déposer ou cliquer</div>
+              <div class="import-sub">.xlsx · .xls · .csv — optionnel mais recommandé</div>
+            </div>
+          </div>
+          <div class="import-status idle" id="status-f3"><div class="dot idle" id="dot-f3"></div><span id="msg-f3">En attente… (optionnel)</span></div>
+        </div>
+
         <div id="import-ready" style="display:none">
           <div style="background:var(--grn-bg);border:1px solid rgba(22,163,74,0.3);border-radius:var(--r);padding:14px 18px;display:flex;align-items:center;gap:12px">
             <svg fill="none" stroke="var(--grn)" stroke-width="2" viewBox="0 0 24 24" style="width:20px;height:20px;flex-shrink:0"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
             <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--grn)">Fichiers chargés et jointurés</div><div style="font-size:12px;color:var(--txt2);margin-top:2px" id="join-info">—</div></div>
-            <button class="btn btn-or" onclick="nav(document.querySelectorAll('.nav-it')[2],'dashboard')">Tableau de bord →</button>
+            <button class="btn btn-or" onclick="navTo('dashboard')">Tableau de bord →</button>
           </div>
         </div>
         <div id="col-preview" style="display:none;margin-top:16px">
@@ -370,7 +394,7 @@ tbody td:last-child{padding-right:16px}
     </div>
 
     <!-- ==================== DASHBOARD ==================== -->
-    <div class="view" id="view-dashboard">
+    <div class="view on" id="view-dashboard">
       <div id="dash-banners"></div>
       <div class="fbar">
         <div class="fg"><div class="flbl">État demande</div><select class="fsel" id="f-etat" onchange="applyFilters()"><option value="">Tous</option></select></div>
@@ -537,6 +561,90 @@ tbody td:last-child{padding-right:16px}
       <div id="nettoyage-content"></div>
     </div>
 
+    <!-- ==================== FINANCE ==================== -->
+    <div class="view" id="view-finance">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <h2 style="font-size:16px;font-weight:600">Pertes financières — Rapprochement comptable</h2>
+          <p style="font-size:12px;color:var(--txt2);margin-top:2px">Rapprochement entre les dossiers de rejet CPAM (<code style="background:var(--bg2);padding:1px 5px;border-radius:4px">IdentRH Concerné</code>) et le fichier comptabilité (<code style="background:var(--bg2);padding:1px 5px;border-radius:4px">N° IDENT</code>). Perte = somme des écarts mensuels (Montant IJ avancé − Montant remboursé par la CPAM).</p>
+        </div>
+        <button class="btn btn-or" onclick="exportCSV('finance')">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 12l-4 4-4-4M12 8v8"/></svg>
+          Exporter pertes financières
+        </button>
+      </div>
+
+      <div id="finance-banner"></div>
+
+      <div class="kgrid" style="grid-template-columns:repeat(5,1fr)">
+        <div class="kcard alert-crit">
+          <div class="klbl">💸 Perte nette totale</div>
+          <div class="kval r" id="fk-perte-totale">—</div>
+          <div class="ksub">Somme des deltas mensuels</div>
+          <div class="kacc r"></div>
+        </div>
+        <div class="kcard">
+          <div class="klbl">Montant IJ avancé</div>
+          <div class="kval b" id="fk-total-ij">—</div>
+          <div class="ksub">Total avancé par Orange</div>
+          <div class="kacc b"></div>
+        </div>
+        <div class="kcard">
+          <div class="klbl">Montant remboursé CPAM</div>
+          <div class="kval g" id="fk-total-remb">—</div>
+          <div class="ksub">Total perçu de la CPAM</div>
+          <div class="kacc g"></div>
+        </div>
+        <div class="kcard">
+          <div class="klbl">Dossiers avec données fin.</div>
+          <div class="kval o" id="fk-nb-rapproche">—</div>
+          <div class="ksub" id="fk-nb-rapproche-sub">—</div>
+          <div class="kacc o"></div>
+        </div>
+        <div class="kcard">
+          <div class="klbl">Lignes non rapprochées</div>
+          <div class="kval pu" id="fk-non-rappr">—</div>
+          <div class="ksub">TYPE DE RAPPROCHEMENT = N</div>
+          <div class="kacc pu"></div>
+        </div>
+      </div>
+
+      <div class="crow">
+        <div class="card">
+          <div class="card-h"><div><div class="card-title">Évolution mensuelle de la perte</div><div class="card-sub">Somme des deltas mensuels par mois</div></div></div>
+          <div style="position:relative;height:220px"><canvas id="ch-fin-evol" role="img" aria-label="Évolution perte">Perte</canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-title">Top 10 pertes par dossier</div></div>
+          <div id="fin-top10"></div>
+        </div>
+      </div>
+
+      <div class="tcard">
+        <div class="thead-bar">
+          <div style="font-size:13px;font-weight:600">Détail financier par dossier</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select class="fsel" id="fin-sort" onchange="renderFinanceTable()" style="font-size:11px">
+              <option value="perte-desc">Perte ↓</option>
+              <option value="perte-asc">Perte ↑</option>
+              <option value="forc-asc">Forclusion ↑</option>
+            </select>
+            <span style="font-size:12px;color:var(--txt2)"><span id="fin-count">—</span> dossiers</span>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr>
+              <th>Num demande</th><th>IdentRH</th><th>État</th><th>Date limite forclusion</th>
+              <th>Montant IJ</th><th>Montant remboursé</th><th>Perte nette</th><th>Lignes compta</th><th>Statut rapprochement</th><th></th>
+            </tr></thead>
+            <tbody id="fin-body"></tbody>
+          </table>
+        </div>
+        <div class="pagi"><span id="fin-p-info">—</span><div class="pbtns" id="fin-p-btns"></div></div>
+      </div>
+    </div>
+
     <!-- ==================== ACTIVITES ==================== -->
     <div class="view" id="view-activites">
       <div class="crow">
@@ -578,11 +686,11 @@ const WARN_DAYS = 365;        // vigilance: < 12 mois restants
 // ================================================================
 // STATE
 // ================================================================
-let demandes=[], activites=[], joined=[], filtered=[];
+let demandes=[], activites=[], compta=[], joined=[], filtered=[];
 let currentTab='', currentPage=1;
 const PAGE=20;
 let charts={};
-let f1Loaded=false, f2Loaded=false;
+let f1Loaded=false, f2Loaded=false, f3Loaded=false;
 
 // ================================================================
 // FORCLUSION LOGIC
@@ -634,7 +742,8 @@ function parseFile(file,which){
       const ws=wb.Sheets[wb.SheetNames[0]];
       const data=XLSX.utils.sheet_to_json(ws,{defval:''});
       if(which==='f1'){demandes=data;f1Loaded=true;setStatus('f1','ok',`${data.length} lignes · ${Object.keys(data[0]||{}).length} colonnes`);document.getElementById('card-f1').classList.add('loaded');showColPreview('f1',data);}
-      else{activites=data;f2Loaded=true;setStatus('f2','ok',`${data.length} lignes · ${Object.keys(data[0]||{}).length} colonnes`);document.getElementById('card-f2').classList.add('loaded');showColPreview('f2',data);}
+      else if(which==='f2'){activites=data;f2Loaded=true;setStatus('f2','ok',`${data.length} lignes · ${Object.keys(data[0]||{}).length} colonnes`);document.getElementById('card-f2').classList.add('loaded');showColPreview('f2',data);}
+      else{compta=data;f3Loaded=true;setStatus('f3','ok',`${data.length} lignes · ${Object.keys(data[0]||{}).length} colonnes`);document.getElementById('card-f3').classList.add('loaded');showColPreview('f3',data);}
       updateFileBadge();
       if(f1Loaded&&f2Loaded) buildJoin();
     }catch(err){setStatus(which,'err','Erreur : '+err.message);}
@@ -651,8 +760,8 @@ function showColPreview(which,data){
   const keys=Object.keys(data[0]||{});
   const prev=document.getElementById('col-preview');
   prev.style.display='block';
-  const color=which==='f1'?'var(--or)':'var(--blu)';
-  const label=which==='f1'?'Demandes':'Activités';
+  const color=which==='f1'?'var(--or)':which==='f2'?'var(--blu)':'var(--grn)';
+  const label=which==='f1'?'Demandes':which==='f2'?'Activités':'Comptabilité';
   document.getElementById('col-preview-inner').innerHTML+=`<div style="background:var(--sur2);border:1px solid var(--bdr);border-radius:9px;padding:12px 14px">
     <div style="font-size:11px;font-weight:600;color:${color};margin-bottom:8px">${label}</div>
     <div style="display:flex;flex-wrap:wrap;gap:4px">${keys.map(k=>`<span style="font-size:10px;font-family:'DM Mono',monospace;background:var(--bg2);padding:2px 6px;border-radius:4px;color:var(--txt2)">${k}</span>`).join('')}</div>
@@ -664,8 +773,9 @@ function showColPreview(which,data){
 // ================================================================
 function findCol(obj,candidates){
   const keys=Object.keys(obj);
+  const norm=s=>s.toLowerCase().replace(/[^a-z0-9]/g,'');
   for(const c of candidates){
-    const f=keys.find(k=>k.toLowerCase().replace(/[\s_\-éèêàù]/g,'').includes(c.toLowerCase().replace(/[\s_\-éèêàù]/g,'')));
+    const f=keys.find(k=>norm(k).includes(norm(c)));
     if(f) return f;
   }
   return null;
@@ -679,14 +789,15 @@ function buildJoin(){
   const cDate=findCol(demandes[0],['datecreation','datecrea','date'])||'Date création';
   const cActe=findCol(demandes[0],['libacte','acte'])||'Lib acte';
   const cType=findCol(demandes[0],['typedemande','type'])||'Type demande';
+  const cIdentRH=findCol(demandes[0],['identrhconcerne','identrh','identconcerne'])||'IdentRH Concerné';
   const cLibAct=findCol(activites[0],['libactivite','activite'])||'Lib activité';
   const cDDebAct=findCol(activites[0],['datedebutactivite','datedebut'])||'Date début activité';
   const cDFinAct=findCol(activites[0],['datefinactivite','datefin'])||'Date fin activité';
   const cHDeb=findCol(activites[0],['heuredebutactivite','heuredebut'])||'Heure début activité';
   const cHFin=findCol(activites[0],['heurefinactivite','heurefin'])||'Heure fin activité';
-  const cCUID=findCol(activites[0],['cuidarh','cuid'])||'CUID ARH traitant activité';
-  const cNomA=findCol(activites[0],['nomarh','nom'])||'Nom ARH traitant';
-  const cPrenA=findCol(activites[0],['prenomarh','prenom'])||'Prénom ARH traitant';
+  const cCUID=findCol(activites[0],['cuidarh','cuid','cuidarh'])||'CUID ARH traitant activité';
+  const cNomA=findCol(activites[0],['nomarh','nomtraitant','nomtrait'])||'Nom ARH traitant';
+  const cPrenA=findCol(activites[0],['prenomarh','prenomtraitant','prenomtrait','prenomtra','prenom'])||'Prénom ARH traitant';
   const cEquipe=findCol(activites[0],['libelleequipe','equipe'])||'Libellé équipe ARH';
 
   const actMap={};
@@ -694,6 +805,46 @@ function buildJoin(){
     const n=String(a[kA]||'').trim();
     if(!actMap[n]) actMap[n]=[];
     actMap[n].push(a);
+  });
+
+  // ── Compta : index par N° IDENT ──
+  let comptaByIdent={};
+  if(compta.length){
+    const cIdent=findCol(compta[0],['nident','numident','ident'])||'N° IDENT';
+    const cMois=findCol(compta[0],['mois'])||'MOIS';
+    const cAnnee=findCol(compta[0],['annee','année'])||'ANNEE';
+    const cMontantIJ=findCol(compta[0],['montantij'])||'MONTANT IJ';
+    const cMontantRemb=findCol(compta[0],['montantremboursement','montantrembours'])||'MONTANT REMBOURSEMENT';
+    const cDelta=findCol(compta[0],['deltamensuel','delta'])||'DELTA MENSUEL';
+    const cTypeRappr=findCol(compta[0],['typederapprochement','typerapprochement'])||'TYPE DE RAPPROCHEMENT';
+    const cSociete=findCol(compta[0],['societe','société'])||'SOCIETE';
+
+    compta.forEach(c=>{
+      const ident=String(c[cIdent]||'').trim();
+      if(!ident) return;
+      if(!comptaByIdent[ident]) comptaByIdent[ident]={lignes:[],totalIJ:0,totalRemb:0,totalDelta:0,nbNonRapproches:0};
+      const ij=parseFloat(String(c[cMontantIJ]||0).toString().replace(',','.'))||0;
+      const remb=parseFloat(String(c[cMontantRemb]||0).toString().replace(',','.'))||0;
+      const delta=parseFloat(String(c[cDelta]||0).toString().replace(',','.'))||0;
+      const rappr=String(c[cTypeRappr]||'').trim().toUpperCase();
+      comptaByIdent[ident].lignes.push({
+        mois:String(c[cMois]||'').trim(),
+        annee:String(c[cAnnee]||'').trim(),
+        montantIJ:ij, montantRemb:remb, delta, rapproche:rappr==='Y',
+        societe:String(c[cSociete]||'').trim()
+      });
+      comptaByIdent[ident].totalIJ+=ij;
+      comptaByIdent[ident].totalRemb+=remb;
+      comptaByIdent[ident].totalDelta+=delta;
+      if(rappr!=='Y') comptaByIdent[ident].nbNonRapproches++;
+    });
+  }
+
+  // ── Compter combien de dossiers de rejet partagent le même IdentRH (pour éviter double-comptage) ──
+  const identCount={};
+  demandes.forEach(d=>{
+    const id=String(d[cIdentRH]||'').trim();
+    if(id) identCount[id]=(identCount[id]||0)+1;
   });
 
   joined=demandes.map(d=>{
@@ -714,6 +865,9 @@ function buildJoin(){
     const dateCreation=parseDate(d[cDate]);
     const today=new Date();today.setHours(0,0,0,0);
     const age=dateCreation?Math.round((today-dateCreation)/86400000):null;
+    const identRH=String(d[cIdentRH]||'').trim();
+    const fin=comptaByIdent[identRH]||null;
+    const sharedCount=identRH?(identCount[identRH]||1):1;
 
     const rec={
       numDemande:num,
@@ -722,13 +876,27 @@ function buildJoin(){
       description:String(d[cDesc]||'').trim(),
       dateCreation,
       libActe:String(d[cActe]||'').trim(),
+      identRH,
       activites:acts,
       dernActivite:lastAct?lastAct.libActivite:'',
       dateDernActivite:lastAct?(lastAct.dateFin||lastAct.dateDebut):null,
+      arbNom:lastAct?lastAct.nomARH:'',
+      arbPrenom:lastAct?lastAct.prenomARH:'',
+      arbCUID:lastAct?lastAct.cuid:'',
       arbTraitant:lastAct?`${lastAct.prenomARH} ${lastAct.nomARH}`.trim():'',
       equipe:lastAct?lastAct.equipe:'',
       nbActivites:acts.length,
       age,
+      // ── Données financières ──
+      finFound: !!fin,
+      finTotalIJ: fin?fin.totalIJ:0,
+      finTotalRemb: fin?fin.totalRemb:0,
+      finPerte: fin?fin.totalDelta:0,           // somme des DELTA MENSUEL (perte nette IdentRH)
+      finNbLignes: fin?fin.lignes.length:0,
+      finNbNonRappr: fin?fin.nbNonRapproches:0,
+      finLignes: fin?fin.lignes:[],
+      finShared: sharedCount>1,                  // ce IdentRH est partagé par plusieurs dossiers
+      finSharedCount: sharedCount,
       _raw:d
     };
     rec.forc=getForclusionInfo(rec);
@@ -736,9 +904,10 @@ function buildJoin(){
   });
 
   const withAct=joined.filter(d=>d.nbActivites>0).length;
-  document.getElementById('join-info').textContent=`${joined.length} demandes · ${withAct} avec activités · Délai forclusion : 823 jours calculé`;
+  const withFin=joined.filter(d=>d.finFound).length;
+  document.getElementById('join-info').textContent=`${joined.length} demandes · ${withAct} avec activités`+(compta.length?` · ${withFin} avec données financières`:'')+` · Forclusion 823j calculée`;
   document.getElementById('import-ready').style.display='block';
-  document.getElementById('side-foot').innerHTML=`${joined.length} demandes<br>${activites.length} activités<br>Forclusion : 823j`;
+  document.getElementById('side-foot').innerHTML=`${joined.length} demandes<br>${activites.length} activités${compta.length?'<br>'+compta.length+' lignes compta':''}<br>Forclusion : 823j`;
 
   const deadCount=joined.filter(d=>d.forc.status==='dead').length;
   const critCount=joined.filter(d=>d.forc.status==='crit').length;
@@ -758,6 +927,20 @@ function parseDate(v){
   if(m) return new Date(+m[3],+m[2]-1,+m[1]);
   const d2=new Date(s); return isNaN(d2)?null:d2;
 }
+
+// ARH display helpers
+function arbCell(d){
+  const nom=d.arbNom||'';const prenom=d.arbPrenom||'';const cuid=d.arbCUID||'';
+  if(!nom&&!prenom) return '<span style="color:var(--txt3)">—</span>';
+  return `<div style="font-size:12px;font-weight:600;line-height:1.3">${nom}</div>`
+       + (prenom?`<div style="font-size:11px;color:var(--txt2)">${prenom}</div>`:'')
+       + (cuid?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--txt3)">${cuid}</div>`:'');
+}
+function arbLabel(d){
+  const nom=d.arbNom||'';const prenom=d.arbPrenom||'';const cuid=d.arbCUID||'';
+  if(!nom&&!prenom) return '—';
+  return `${nom}${prenom?' '+prenom:''}${cuid?' ('+cuid+')':''}`;
+}
 function fmtDate(d){if(!d) return '—';return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});}
 
 // ================================================================
@@ -772,10 +955,17 @@ function populateFilters(){
   const months=[...new Set(joined.map(d=>{if(!d.dateCreation)return null;return d.dateCreation.getFullYear()+'-'+String(d.dateCreation.getMonth()+1).padStart(2,'0');}).filter(Boolean))].sort().reverse();
   const psel=document.getElementById('f-periode');
   if(psel) psel.innerHTML='<option value="">Toute période</option>'+months.map(m=>`<option value="${m}">${m}</option>`).join('');
-  const arhs=[...new Set(joined.map(d=>d.arbTraitant).filter(Boolean))].sort();
+  // Build ARH list with CUID for disambiguation
+  const arhMap={};
+  joined.forEach(d=>{
+    if(!d.arbTraitant) return;
+    const key=d.arbTraitant;
+    if(!arhMap[key]) arhMap[key]={label:d.arbTraitant,cuid:d.arbCUID};
+  });
+  const arhsSorted=Object.entries(arhMap).sort((a,b)=>a[0].localeCompare(b[0]));
   ['f-arh','ft-arh'].forEach(id=>{
     const el=document.getElementById(id);if(!el)return;
-    el.innerHTML='<option value="">Tous</option>'+arhs.map(a=>`<option>${a}</option>`).join('');
+    el.innerHTML='<option value="">Tous</option>'+joined.filter((d,i,a)=>d.arbTraitant&&a.findIndex(x=>x.arbTraitant===d.arbTraitant)===i).sort((a,b)=>a.arbNom.localeCompare(b.arbNom)).map(d=>`<option value="${d.arbTraitant}">${d.arbNom}${d.arbPrenom?' '+d.arbPrenom:''} ${d.arbCUID?'('+d.arbCUID+')':''}</option>`).join('');
   });
 }
 
@@ -857,6 +1047,7 @@ function updateAll(){
   else if(curView==='alertes'){renderAlertes();}
   else if(curView==='manager'){renderManager();}
   else if(curView==='nettoyage'){renderNettoyage();}
+  else if(curView==='finance'){renderFinance();renderFinanceTable();}
   else if(curView==='activites'){drawActivitesView();}
 }
 
@@ -879,7 +1070,9 @@ function updateTabCounts(){
 
 function updateFileBadge(){
   const n=(f1Loaded?1:0)+(f2Loaded?1:0);
-  const b=document.getElementById('nb-files');b.textContent=n+'/2';b.className='side-badge '+(n===2?'ok':'warn');
+  const b=document.getElementById('nb-files');
+  b.textContent=n+'/2'+(f3Loaded?' +💰':'');
+  b.className='side-badge '+(n===2?'ok':'warn');
 }
 
 // ================================================================
@@ -912,8 +1105,8 @@ function drawDashboard(){
   const crit=joined.filter(d=>d.forc.status==='crit').length;
   const urg=joined.filter(d=>d.forc.status==='urg').length;
   let banners='';
-  if(crit>0) banners+=`<div class="forc-banner crit"><div class="forc-icon">🚨</div><div class="forc-banner-txt"><div class="forc-banner-title">${crit} dossier${crit>1?'s':''} en forclusion critique — moins de 30 jours restants</div><div class="forc-banner-sub">Action immédiate requise. Ces dossiers ne pourront plus être récupérés sous 30 jours.</div></div><button class="btn btn-red" onclick="nav(document.querySelectorAll('.nav-it')[6],'alertes')">Voir les alertes →</button></div>`;
-  if(urg>0) banners+=`<div class="forc-banner urg"><div class="forc-icon">⚠️</div><div class="forc-banner-txt"><div class="forc-banner-title">${urg} dossier${urg>1?'s':''} à traiter dans les 6 prochains mois</div><div class="forc-banner-sub">À planifier en priorité pour éviter la perte de remboursement.</div></div><button class="btn btn-amb" onclick="nav(document.querySelectorAll('.nav-it')[7],'manager')">Rapport manager →</button></div>`;
+  if(crit>0) banners+=`<div class="forc-banner crit"><div class="forc-icon">🚨</div><div class="forc-banner-txt"><div class="forc-banner-title">${crit} dossier${crit>1?'s':''} en forclusion critique — moins de 30 jours restants</div><div class="forc-banner-sub">Action immédiate requise. Ces dossiers ne pourront plus être récupérés sous 30 jours.</div></div><button class="btn btn-red" onclick="navTo('alertes')">Voir les alertes →</button></div>`;
+  if(urg>0) banners+=`<div class="forc-banner urg"><div class="forc-icon">⚠️</div><div class="forc-banner-txt"><div class="forc-banner-title">${urg} dossier${urg>1?'s':''} à traiter dans les 6 prochains mois</div><div class="forc-banner-sub">À planifier en priorité pour éviter la perte de remboursement.</div></div><button class="btn btn-amb" onclick="navTo('manager')">Rapport manager →</button></div>`;
   document.getElementById('dash-banners').innerHTML=banners;
 
   drawEvolChart(); drawEtatChart(); drawForcChart(); drawAnciennete();
@@ -1036,7 +1229,7 @@ function renderTable(){
       <td>${forcPill(d.forc)}</td>
       <td>${forcBarHTML(d.forc)}</td>
       <td><span class="badge ${getActClass(d.dernActivite)}" style="font-size:10px" title="${d.dernActivite}">${d.dernActivite?d.dernActivite.replace(/^\d+:/,'').trim().slice(0,28):'—'}</span></td>
-      <td style="font-size:12px">${d.arbTraitant||'—'}</td>
+      <td>${arbCell(d)}</td>
       <td><button class="btn btn-ghost" style="padding:3px 7px;font-size:11px" onclick="event.stopPropagation();openModal('${d.numDemande}')">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
       </button></td>
@@ -1093,7 +1286,7 @@ function renderAlertes(){
             <td class="mono" style="font-size:11px;font-weight:600;color:var(--forc-${sec.key})">${fmtDate(d.forc.dateLimit)}</td>
             <td>${forcPill(d.forc)}</td>
             <td>${forcBarHTML(d.forc)}</td>
-            <td style="font-size:12px">${d.arbTraitant||'—'}</td>
+            <td>${arbCell(d)}</td>
             <td style="font-size:11px;color:var(--txt2)">${d.equipe||'—'}</td>
             <td><button class="btn btn-ghost" style="padding:3px 7px" onclick="event.stopPropagation();openModal('${d.numDemande}')">
               <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -1154,7 +1347,14 @@ function renderManager(){
       <div style="padding:12px 16px;background:var(--sur2);border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between">
         <div style="display:flex;align-items:center;gap:10px">
           <div style="width:30px;height:30px;border-radius:50%;background:var(--or-bg);color:var(--or);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">${arh.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2)}</div>
-          <div><div style="font-size:13px;font-weight:600">${arh}</div><div style="font-size:11px;color:var(--txt2)">${equipe}</div></div>
+          <div>
+            <div style="font-size:13px;font-weight:600">${aitems[0]?.arbNom||arh}</div>
+            <div style="font-size:12px;color:var(--txt2)">${aitems[0]?.arbPrenom||''}</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
+              ${aitems[0]?.arbCUID?`<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--txt3)">${aitems[0].arbCUID}</span>`:''}
+              <span style="font-size:11px;color:var(--txt2)">${equipe}</span>
+            </div>
+          </div>
         </div>
         <span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:500;background:var(--or-bg);color:var(--or);padding:3px 8px;border-radius:6px">${aitems.length} dossier${aitems.length>1?'s':''}</span>
       </div>
@@ -1221,7 +1421,7 @@ function renderNettoyage(){
           <td class="mono" style="font-size:11px;color:var(--forc-dead)">${fmtDate(d.forc.dateLimit)}</td>
           <td><span class="fpill dead">+${Math.abs(d.forc.jRestants||0)}j</span></td>
           <td style="font-size:11px;color:var(--txt2)">${d.dernActivite?d.dernActivite.replace(/^\d+:/,'').trim().slice(0,30):'—'}</td>
-          <td style="font-size:12px">${d.arbTraitant||'—'}</td>
+          <td>${arbCell(d)}</td>
           <td><button class="btn btn-ghost" style="padding:3px 7px" onclick="event.stopPropagation();openModal('${d.numDemande}')">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </button></td>
@@ -1234,6 +1434,118 @@ function renderNettoyage(){
 // ================================================================
 // ACTIVITES VIEW
 // ================================================================
+// ================================================================
+// FINANCE VIEW
+// ================================================================
+let financePage=1;
+const FINANCE_PAGE=15;
+
+function renderFinance(){
+  if(!compta.length){
+    document.getElementById('finance-banner').innerHTML=`<div style="background:var(--amb-bg);border:1px solid rgba(217,119,6,0.25);border-radius:var(--rl);padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:12px">
+      <div style="font-size:24px">📂</div>
+      <div><div style="font-size:13px;font-weight:600;color:var(--amb)">Fichier comptabilité non chargé</div>
+      <div style="font-size:12px;color:var(--txt2);margin-top:2px">Importez le fichier de comptabilité (N° IDENT, Montant IJ, Montant remboursement) via l'accès admin pour activer le rapprochement financier.</div></div></div>`;
+  } else {
+    document.getElementById('finance-banner').innerHTML='';
+  }
+
+  const withFin=filtered.filter(d=>d.finFound);
+  const totalPerte=withFin.reduce((s,d)=>s+d.finPerte,0);
+  const totalIJ=withFin.reduce((s,d)=>s+d.finTotalIJ,0);
+  const totalRemb=withFin.reduce((s,d)=>s+d.finTotalRemb,0);
+  const nonRappr=withFin.reduce((s,d)=>s+d.finNbNonRappr,0);
+  const sharedCount=withFin.filter(d=>d.finShared).length;
+
+  document.getElementById('fk-perte-totale').textContent='€'+Math.round(totalPerte).toLocaleString('fr-FR');
+  document.getElementById('fk-total-ij').textContent='€'+Math.round(totalIJ).toLocaleString('fr-FR');
+  document.getElementById('fk-total-remb').textContent='€'+Math.round(totalRemb).toLocaleString('fr-FR');
+  document.getElementById('fk-nb-rapproche').textContent=withFin.length;
+  document.getElementById('fk-nb-rapproche-sub').textContent=sharedCount>0?`dont ${sharedCount} IdentRH partagés`:`sur ${filtered.length} dossiers`;
+  document.getElementById('fk-non-rappr').textContent=nonRappr;
+
+  // Évolution mensuelle de la perte (toutes lignes compta des dossiers filtrés)
+  dc('finEvol');
+  const monthly={};
+  withFin.forEach(d=>d.finLignes.forEach(l=>{
+    const k=l.annee+'-'+l.mois;
+    if(!monthly[k]) monthly[k]={delta:0,sortKey:l.annee+'-'+String(l.mois).padStart(2,'0')};
+    monthly[k].delta+=l.delta;
+  }));
+  const sortedMonths=Object.entries(monthly).sort((a,b)=>a[1].sortKey.localeCompare(b[1].sortKey));
+  const mLabels=sortedMonths.map(([k])=>k);
+  const mData=sortedMonths.map(([,v])=>Math.round(v.delta));
+  charts['finEvol']=new Chart(document.getElementById('ch-fin-evol').getContext('2d'),{
+    type:'bar',
+    data:{labels:mLabels,datasets:[{
+      label:'Delta mensuel (€)',data:mData,
+      backgroundColor:mData.map(v=>v<0?'rgba(21,128,61,0.25)':'rgba(185,28,28,0.25)'),
+      borderColor:mData.map(v=>v<0?'#15803D':'#B91C1C'),
+      borderWidth:1.5,borderRadius:4,borderSkipped:false
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:ctx=>'€'+ctx.parsed.y.toLocaleString('fr-FR')}}},
+      scales:{y:{ticks:{callback:v=>'€'+v.toLocaleString('fr-FR'),font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}},x:{ticks:{font:{size:9}},grid:{display:false}}}
+    }
+  });
+
+  // Top 10 pertes
+  const top10=[...withFin].sort((a,b)=>b.finPerte-a.finPerte).slice(0,10);
+  const maxPerte=top10[0]?.finPerte||1;
+  document.getElementById('fin-top10').innerHTML=top10.map(d=>`
+    <div class="stat-row" style="cursor:pointer" onclick="openModal('${d.numDemande}')">
+      <div class="stat-row-lbl" style="width:90px"><span class="cell-id">${d.numDemande}</span></div>
+      <div class="stat-row-bar"><div class="pbar"><div class="pfill" style="width:${Math.round(d.finPerte/maxPerte*100)}%;background:${d.finPerte<0?'#15803D':'#B91C1C'}"></div></div></div>
+      <div class="stat-row-val" style="width:70px;color:${d.finPerte<0?'#15803D':'#B91C1C'}">€${Math.round(d.finPerte).toLocaleString('fr-FR')}</div>
+    </div>`).join('')||'<div style="color:var(--txt3);font-size:12px">Aucune donnée financière</div>';
+}
+
+function renderFinanceTable(){
+  const withFin=filtered.filter(d=>d.finFound);
+  const sort=document.getElementById('fin-sort')?.value||'perte-desc';
+  const data=[...withFin];
+  if(sort==='perte-desc') data.sort((a,b)=>b.finPerte-a.finPerte);
+  else if(sort==='perte-asc') data.sort((a,b)=>a.finPerte-b.finPerte);
+  else if(sort==='forc-asc'){const fo={crit:0,urg:1,warn:2,ok:3,dead:4};data.sort((a,b)=>(fo[a.forc.status]||9)-(fo[b.forc.status]||9));}
+
+  const total=data.length;
+  const start=(financePage-1)*FINANCE_PAGE;
+  const page=data.slice(start,start+FINANCE_PAGE);
+  document.getElementById('fin-count').textContent=total;
+  document.getElementById('fin-p-info').textContent=total?`${start+1}–${Math.min(start+FINANCE_PAGE,total)} sur ${total}`:'0 dossier';
+
+  document.getElementById('fin-body').innerHTML=page.map(d=>{
+    const perteColor=d.finPerte<0?'#15803D':d.finPerte>0?'#B91C1C':'var(--txt2)';
+    return `<tr onclick="openModal('${d.numDemande}')">
+      <td><span class="cell-id">${d.numDemande}</span></td>
+      <td class="mono" style="font-size:11px">${d.identRH||'—'}${d.finShared?` <span class="badge b-gray" style="font-size:9px" title="IdentRH partagé par ${d.finSharedCount} dossiers">×${d.finSharedCount}</span>`:''}</td>
+      <td><span class="badge ${getEtatClass(d.etat)}">${d.etat||'—'}</span></td>
+      <td class="mono" style="font-size:11px;color:${d.forc.status==='dead'?'var(--forc-crit)':'var(--txt)'}">${fmtDate(d.forc.dateLimit)}</td>
+      <td class="mono" style="font-size:12px">€${Math.round(d.finTotalIJ).toLocaleString('fr-FR')}</td>
+      <td class="mono" style="font-size:12px">€${Math.round(d.finTotalRemb).toLocaleString('fr-FR')}</td>
+      <td class="mono" style="font-size:12px;font-weight:600;color:${perteColor}">€${Math.round(d.finPerte).toLocaleString('fr-FR')}</td>
+      <td><span style="font-family:'DM Mono',monospace;font-size:11px;background:var(--bg2);padding:2px 6px;border-radius:4px">${d.finNbLignes}</span></td>
+      <td>${d.finNbNonRappr>0?`<span class="badge b-r">${d.finNbNonRappr} non rapproché${d.finNbNonRappr>1?'s':''}</span>`:`<span class="badge b-g">OK</span>`}</td>
+      <td><button class="btn btn-ghost" style="padding:3px 7px" onclick="event.stopPropagation();openModal('${d.numDemande}')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button></td>
+    </tr>`;
+  }).join('')||`<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--txt3)">${compta.length?'Aucun dossier avec données financières dans la sélection actuelle':'Importez le fichier comptabilité pour voir le rapprochement'}</td></tr>`;
+
+  renderFinancePagi(total);
+}
+
+function renderFinancePagi(total){
+  const pages=Math.ceil(total/FINANCE_PAGE)||1;
+  const c=document.getElementById('fin-p-btns');
+  let h=`<button class="pbtn" onclick="finGp(${financePage-1})" ${financePage===1?'disabled':''}>‹</button>`;
+  const s=Math.max(1,financePage-2),e=Math.min(pages,financePage+2);
+  for(let p=s;p<=e;p++)h+=`<button class="pbtn ${p===financePage?'on':''}" onclick="finGp(${p})">${p}</button>`;
+  h+=`<button class="pbtn" onclick="finGp(${financePage+1})" ${financePage===pages?'disabled':''}>›</button>`;
+  c.innerHTML=h;
+}
+function finGp(p){financePage=p;renderFinanceTable();}
+
 function drawActivitesView(){
   dc('act');
   const acts={};
@@ -1258,14 +1570,15 @@ function drawActivitesView(){
   }));
   const sorted2=Object.entries(arhData).sort((a,b)=>b[1].total-a[1].total).slice(0,8);
   const maxA=sorted2[0]?.[1].total||1;
-  document.getElementById('arh-charge').innerHTML=sorted2.map(([nom,{total,equipe}],i)=>{
-    const ini=nom.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+  document.getElementById('arh-charge').innerHTML=sorted2.map(([key,{total,equipe,nom,prenom,cuid:cu}],i)=>{
+    const ini=((nom[0]||'')+(prenom[0]||'')).toUpperCase();
     const c=colors[i%8];
     return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
       <div style="width:28px;height:28px;border-radius:50%;background:${c}20;color:${c};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0">${ini}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nom}</div>
-        <div style="font-size:10px;color:var(--txt2)">${equipe}</div>
+        <div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nom}</div>
+        <div style="font-size:11px;color:var(--txt2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${prenom}</div>
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--txt3)">${cu||equipe}</div>
         <div class="pbar" style="margin-top:3px"><div class="pfill" style="width:${Math.round(total/maxA*100)}%;background:${c}"></div></div>
       </div>
       <div style="font-size:11px;font-family:'DM Mono',monospace;font-weight:500;flex-shrink:0">${total}</div>
@@ -1312,6 +1625,38 @@ function openModal(num){
       </div>
       ${d.description?`<div style="margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:8px;font-size:12px;color:var(--txt2);line-height:1.6">${d.description}</div>`:''}
     </div>
+    ${d.identRH?`<div class="msec">
+      <div class="msec-title">💰 Rapprochement financier</div>
+      <div class="mgrid">
+        <div class="mfield"><label>IdentRH Concerné</label><div class="v mono">${d.identRH}${d.finShared?` <span class="badge b-gray" style="font-size:9px">partagé ×${d.finSharedCount}</span>`:''}</div></div>
+        <div class="mfield"><label>Lignes compta trouvées</label><div class="v">${d.finNbLignes||0}</div></div>
+        ${d.finFound?`
+        <div class="mfield"><label>Montant IJ avancé (total)</label><div class="v mono">€${Math.round(d.finTotalIJ).toLocaleString('fr-FR')}</div></div>
+        <div class="mfield"><label>Montant remboursé CPAM</label><div class="v mono">€${Math.round(d.finTotalRemb).toLocaleString('fr-FR')}</div></div>
+        <div class="mfield"><label>Perte nette</label><div class="v mono" style="font-size:16px;font-weight:600;color:${d.finPerte<0?'#15803D':d.finPerte>0?'#B91C1C':'var(--txt)'}">€${Math.round(d.finPerte).toLocaleString('fr-FR')}</div></div>
+        <div class="mfield"><label>Lignes non rapprochées</label><div class="v">${d.finNbNonRappr>0?`<span class="badge b-r">${d.finNbNonRappr}</span>`:`<span class="badge b-g">0</span>`}</div></div>
+        `:`<div class="mfield" style="grid-column:1/-1"><div class="v" style="color:var(--txt3)">Aucune ligne comptable trouvée pour cet IdentRH</div></div>`}
+      </div>
+      ${d.finShared?`<div style="margin-top:8px;padding:8px 12px;background:var(--amb-bg);border-radius:8px;font-size:11px;color:var(--amb)">⚠️ Cet IdentRH est partagé par ${d.finSharedCount} dossiers de rejet CPAM. Le montant affiché est la perte totale du salarié sur la période comptable, pas uniquement celle de ce dossier.</div>`:''}
+      ${d.finLignes.length?`<div style="margin-top:12px;overflow-x:auto">
+        <table style="font-size:11px;width:100%">
+          <thead><tr>
+            <th style="padding:6px 10px;background:var(--sur2);border-bottom:1px solid var(--bdr);text-align:left">Mois</th>
+            <th style="padding:6px 10px;background:var(--sur2);border-bottom:1px solid var(--bdr);text-align:right">Montant IJ</th>
+            <th style="padding:6px 10px;background:var(--sur2);border-bottom:1px solid var(--bdr);text-align:right">Remboursé</th>
+            <th style="padding:6px 10px;background:var(--sur2);border-bottom:1px solid var(--bdr);text-align:right">Delta</th>
+            <th style="padding:6px 10px;background:var(--sur2);border-bottom:1px solid var(--bdr);text-align:center">Rapproché</th>
+          </tr></thead>
+          <tbody>${d.finLignes.map(l=>`<tr style="border-bottom:1px solid var(--bdr)">
+            <td style="padding:6px 10px">${l.mois} ${l.annee}</td>
+            <td style="padding:6px 10px;text-align:right;font-family:'DM Mono',monospace">€${l.montantIJ.toLocaleString('fr-FR')}</td>
+            <td style="padding:6px 10px;text-align:right;font-family:'DM Mono',monospace">€${l.montantRemb.toLocaleString('fr-FR')}</td>
+            <td style="padding:6px 10px;text-align:right;font-family:'DM Mono',monospace;font-weight:600;color:${l.delta<0?'#15803D':l.delta>0?'#B91C1C':'var(--txt)'}">€${l.delta.toLocaleString('fr-FR')}</td>
+            <td style="padding:6px 10px;text-align:center">${l.rapproche?'<span style="color:#15803D">✓</span>':'<span style="color:#B91C1C">✗</span>'}</td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>`:''}
+    </div>`:''}
     <div class="msec">
       <div class="msec-title">Historique des activités (${d.nbActivites})</div>
       ${d.activites.length?d.activites.map((a,i)=>{
@@ -1339,11 +1684,14 @@ function closeMod(e){if(e.target===document.getElementById('moverlay'))document.
 // EXPORT CSV
 // ================================================================
 function buildCSVRows(items){
-  const headers=['Num demande','Type','Etat','Lib acte','Date creation','Age (jours)','Date limite forclusion','Jours restants forclusion','Statut forclusion','Derniere activite','Date derniere activite','ARH traitant','Equipe','Nb activites','Description'];
+  const headers=['Num demande','Type','Etat','Lib acte','Date creation','Age (jours)','Date limite forclusion','Jours restants forclusion','Statut forclusion','Derniere activite','Date derniere activite','ARH Nom','ARH Prenom','ARH CUID','Equipe','Nb activites','IdentRH Concerne','Montant IJ avance','Montant rembourse CPAM','Perte nette','Nb lignes compta','Nb non rapprochees','IdentRH partage','Description'];
   const rows=items.map(d=>[
     d.numDemande,d.type,d.etat,d.libActe,fmtDate(d.dateCreation),d.age!==null?d.age:'',
     fmtDate(d.forc.dateLimit),d.forc.jRestants!==null?d.forc.jRestants:'',FORC_LABELS[d.forc.status]||'',
-    d.dernActivite,fmtDate(d.dateDernActivite),d.arbTraitant,d.equipe,d.nbActivites,d.description
+    d.dernActivite,fmtDate(d.dateDernActivite),d.arbNom,d.arbPrenom,d.arbCUID,d.equipe,d.nbActivites,
+    d.identRH||'',d.finFound?Math.round(d.finTotalIJ*100)/100:'',d.finFound?Math.round(d.finTotalRemb*100)/100:'',
+    d.finFound?Math.round(d.finPerte*100)/100:'',d.finNbLignes||'',d.finNbNonRappr||'',d.finShared?'Oui ('+d.finSharedCount+')':'Non',
+    d.description
   ].map(v=>String(v||'').replace(/;/g,',')));
   return [headers.join(';'),...rows.map(r=>r.join(';'))].join('\n');
 }
@@ -1355,6 +1703,7 @@ function exportCSV(type){
   else if(type==='urgent'){items=joined.filter(d=>d.forc.status==='crit'||d.forc.status==='urg');name='rejets_cpam_urgents';}
   else if(type==='manager'){items=joined.filter(d=>d.forc.status==='crit'||d.forc.status==='urg');name='rejets_cpam_rapport_manager';}
   else if(type==='dead'){items=joined.filter(d=>d.forc.status==='dead');name='rejets_cpam_forclos';}
+  else if(type==='finance'){items=joined.filter(d=>d.finFound);name='rejets_cpam_pertes_financieres';}
   else{items=filtered;name='rejets_cpam';}
   const csv=buildCSVRows(items);
   const a=document.createElement('a');
@@ -1375,6 +1724,11 @@ function exportCSVSubset(nums){
 // ================================================================
 // NAV
 // ================================================================
+function navTo(view){
+  const el=Array.from(document.querySelectorAll('.nav-it')).find(n=>(n.getAttribute('onclick')||'').includes(`'${view}'`));
+  if(el) nav(el,view);
+}
+
 function nav(el,view){
   document.querySelectorAll('.nav-it').forEach(n=>n.classList.remove('on'));
   el.classList.add('on');
@@ -1386,9 +1740,91 @@ function nav(el,view){
     else if(view==='alertes') renderAlertes();
     else if(view==='manager') renderManager();
     else if(view==='nettoyage') renderNettoyage();
+    else if(view==='finance'){renderFinance();renderFinanceTable();}
     else if(view==='activites') drawActivitesView();
   }
 }
+
+// ================================================================
+// ADMIN ACCESS
+// ================================================================
+const ADMIN_CODE = 'orange2025'; // ← modifiez ce code ici
+
+function openAdminModal(){
+  const ov=document.getElementById('admin-overlay');
+  ov.style.display='flex';
+  setTimeout(()=>document.getElementById('admin-pwd').focus(),50);
+}
+
+function closeAdminModal(){
+  document.getElementById('admin-overlay').style.display='none';
+  document.getElementById('admin-pwd').value='';
+  document.getElementById('admin-err').style.display='none';
+}
+
+function checkAdmin(){
+  const pwd=document.getElementById('admin-pwd').value;
+  if(pwd===ADMIN_CODE){
+    closeAdminModal();
+    unlockAdmin();
+  } else {
+    document.getElementById('admin-err').style.display='block';
+    document.getElementById('admin-pwd').value='';
+    document.getElementById('admin-pwd').focus();
+  }
+}
+
+function unlockAdmin(){
+  document.querySelectorAll('.admin-only').forEach(el=>el.style.display='');
+  const importNav=document.querySelector('.nav-it.admin-only');
+  if(importNav) nav(importNav,'import');
+  sessionStorage.setItem('admin','1');
+}
+
+// Raccourci clavier : Ctrl + Shift + I
+document.addEventListener('keydown',e=>{
+  if(e.ctrlKey&&e.shiftKey&&e.key==='I'){
+    e.preventDefault();
+    if(sessionStorage.getItem('admin')==='1'){
+      const importNav=document.querySelector('.nav-it.admin-only');
+      if(importNav) nav(importNav,'import');
+    } else {
+      openAdminModal();
+    }
+  }
+});
+
+// Fermer modal en cliquant l'overlay
+document.getElementById('admin-overlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('admin-overlay')) closeAdminModal();
+});
+
+// Message topbar si pas de données
+window.addEventListener('DOMContentLoaded',()=>{
+  if(!joined.length){
+    document.getElementById('topbar-sub').textContent='Aucune donnée — accès admin requis pour importer (Ctrl+Shift+I)';
+  }
+});
 </script>
+
+<!-- ADMIN MODAL -->
+<div id="admin-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:500;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:14px;width:360px;padding:28px;box-shadow:0 24px 60px rgba(0,0,0,0.2)">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="width:48px;height:48px;background:#FFF3E8;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:22px">🔐</div>
+      <div style="font-size:15px;font-weight:600">Accès administrateur</div>
+      <div style="font-size:12px;color:#6A6A5E;margin-top:4px">Entrez le code pour accéder à l'import des données</div>
+    </div>
+    <input type="password" id="admin-pwd" placeholder="Code d'accès…"
+      style="width:100%;padding:10px 12px;border:1.5px solid rgba(0,0,0,0.13);border-radius:9px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;text-align:center;letter-spacing:4px;margin-bottom:10px"
+      onkeydown="if(event.key==='Enter')checkAdmin()" oninput="document.getElementById('admin-err').style.display='none'">
+    <div id="admin-err" style="display:none;font-size:12px;color:#D73E3E;text-align:center;margin-bottom:10px">Code incorrect. Réessayez.</div>
+    <div style="display:flex;gap:8px">
+      <button onclick="closeAdminModal()" style="flex:1;padding:9px;border-radius:8px;border:1px solid rgba(0,0,0,0.13);background:transparent;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;color:#6A6A5E">Annuler</button>
+      <button onclick="checkAdmin()" style="flex:1;padding:9px;border-radius:8px;border:none;background:#FF7900;color:#fff;cursor:pointer;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif">Accéder</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
