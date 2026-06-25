@@ -242,7 +242,7 @@ tbody td:last-child{padding-right:16px}
 
 <!-- SIDEBAR -->
 <aside class="side">
-  <div class="side-logo">
+  <div class="side-logo" onclick="logoClick()" style="cursor:pointer">
     <div class="side-logo-row">
       <div class="side-orb">O</div>
       <div>
@@ -1748,7 +1748,7 @@ function nav(el,view){
 // ================================================================
 // ADMIN ACCESS
 // ================================================================
-const ADMIN_CODE = '1708'; // ← modifiez ce code ici
+const ADMIN_CODE = 'orange2025'; // ← modifiez ce code ici
 
 function openAdminModal(){
   const ov=document.getElementById('admin-overlay');
@@ -1781,9 +1781,28 @@ function unlockAdmin(){
   sessionStorage.setItem('admin','1');
 }
 
-// Raccourci clavier : Ctrl + Shift + I
+// Clic secret sur le logo (5 clics rapides en moins de 2 secondes)
+let logoClickCount=0;
+let logoClickTimer=null;
+function logoClick(){
+  logoClickCount++;
+  clearTimeout(logoClickTimer);
+  logoClickTimer=setTimeout(()=>{logoClickCount=0;},2000);
+  if(logoClickCount>=5){
+    logoClickCount=0;
+    clearTimeout(logoClickTimer);
+    if(sessionStorage.getItem('admin')==='1'){
+      const importNav=document.querySelector('.nav-it.admin-only');
+      if(importNav) nav(importNav,'import');
+    } else {
+      openAdminModal();
+    }
+  }
+}
+
+// Raccourci clavier secondaire : Alt + A (n'entre pas en conflit avec les devtools navigateur)
 document.addEventListener('keydown',e=>{
-  if(e.ctrlKey&&e.shiftKey&&e.key==='I'){
+  if(e.altKey&&!e.ctrlKey&&!e.shiftKey&&e.key.toLowerCase()==='a'){
     e.preventDefault();
     if(sessionStorage.getItem('admin')==='1'){
       const importNav=document.querySelector('.nav-it.admin-only');
@@ -1802,7 +1821,7 @@ document.getElementById('admin-overlay').addEventListener('click',e=>{
 // Message topbar si pas de données
 window.addEventListener('DOMContentLoaded',()=>{
   if(!joined.length){
-    document.getElementById('topbar-sub').textContent='Aucune donnée — accès admin requis pour importer (Ctrl+Shift+I)';
+    document.getElementById('topbar-sub').textContent='Aucune donnée — accès admin requis pour importer (5 clics sur le logo)';
   }
 });
 </script>
